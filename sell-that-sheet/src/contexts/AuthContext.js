@@ -5,7 +5,7 @@ const AuthContext = createContext();
 
 
 const api = axios.create({
-	baseURL: 'http://192.168.1.15:8000/',
+	baseURL: 'http://192.168.3.27:8000/',
 });
 
 api.interceptors.request.use((config) => {
@@ -99,6 +99,39 @@ export const getCategoryById = async (categoryId) => {
     return Promise.reject(response.data.errors[0]);
   }
   return response.data;
+}
+
+const paramNameTranslation = {
+  'name': 'Nazwa',
+  'price_pln': 'Cena',
+  'price_euro': 'Cena w Euro',
+  'tags': 'Tagi',
+  'description': 'Opis',
+  'serial_numbers': 'Numery seryjne',
+  'shipment_price': 'Cena wysyłki',
+}
+
+const requiredBaseParameters = ['name', 'price_pln', 'shipment_price'];
+const disabledBaseParameters = ['id'];
+
+export const createCategoryOfferObject = async (categoryId) => {
+  const categoryParameters = await getCategoryParameters(categoryId);
+  const offerModel = await api.get('/model-structure/sell_that_sheet/auction');
+  const baseParameters = offerModel.data.structure.map((param) => {
+    return {
+      name: param.name,
+      displayName: paramNameTranslation[param.name] || param.name,
+      id: param.name + 'Base',
+      type: (param.type.includes('Char') ? 'string' : 'float'),
+      base: true,
+      value: '',
+      required: requiredBaseParameters.includes(param.name),
+      disabled: disabledBaseParameters.includes(param.name),
+    }
+  });
+
+  const parameters = baseParameters.concat(categoryParameters.parameters);
+  return parameters;
 }
 
 export { api };

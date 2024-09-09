@@ -27,7 +27,7 @@
     "babel-register": "^6.26.0",
     "chonky": "^2.3.2",
     "chonky-icon-fontawesome": "^2.3.2",
-    "formik": "^2.4.5",
+    "formik": "^2.4.6",
     "framer-motion": "^4.1.17",
     "handsontable": "^14.4.0",
     "react": "^18.3.1",
@@ -47,7 +47,11 @@
     "scheduler": "^0.23.2",
     "stylis": "^4.1.1",
     "stylis-plugin-rtl": "2.0.2",
-    "web-vitals": "^1.1.2"
+    "uniforms": "^4.0.0-alpha.6",
+    "uniforms-bridge-json-schema": "^4.0.0-alpha.6",
+    "uniforms-semantic": "^4.0.0-alpha.6",
+    "web-vitals": "^1.1.2",
+    "yup": "^1.4.0"
   },
   "scripts": {
     "start": "react-scripts start",

@@ -12,10 +12,11 @@ import {
   Select,
 } from '@chakra-ui/react';
 import { FullFileBrowser, defineFileAction, ChonkyIconName } from 'chonky';
-import { useTable, useBlockLayout } from 'react-table';
 import Card from 'components/card/Card';
 import '@silevis/reactgrid/styles.css';
 import { CreateProductModal } from './CreateProductModal';
+import AuctionSetSheet from './AuctionSetSheet';
+import AuctionForm from './AuctionForm';
 
 const AuctionSetCreator = () => {
   const [folderChain, setFolderChain] = useState([{ id: 'root', name: 'Zdjęcia', fc: true }]);
@@ -44,48 +45,6 @@ const AuctionSetCreator = () => {
     };
     fetchCategoryParameters();
   }, []);
-
-  const columns = useMemo(
-    () =>
-      categoryParameters.map((param) => ({
-        Header: param.name,
-        accessor: param.id,
-        width: 150,
-        Cell: ({ value }) =>
-          param.type === 'dictionary' ? (
-            <Select value={value} placeholder="Select option">
-              {param.dictionary.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.value}
-                </option>
-              ))}
-            </Select>
-          ) : (
-            value
-          ),
-      })),
-    [categoryParameters]
-  );
-
-  const data = useMemo(() => currentProducts, [currentProducts]);
-
-  const updateData = useCallback((rowIndex, columnId, value) => {
-    setCurrentProducts((old) =>
-      old.map((row, index) => {
-        if (index === rowIndex) {
-          return {
-            ...old[rowIndex],
-            [columnId]: value,
-          };
-        }
-        return row;
-      })
-    );
-  }, []);
-
-  const tableInstance = useTable({ columns, data, updateData }, useBlockLayout);
-
-  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = tableInstance;
 
   const createProduct = (folderChain, photos) => {
     // Add functionality for creating a product
@@ -142,42 +101,10 @@ const AuctionSetCreator = () => {
               <TabPanel key={index} p={0} width="100%">
                 <ChakraProvider>
                   <Box overflow="auto">
-                    <div {...getTableProps()} style={{ display: 'block' }}>
-                      <div>
-                        {headerGroups.map((headerGroup) => (
-                          <div {...headerGroup.getHeaderGroupProps()} style={{ display: 'flex' }}>
-                            {headerGroup.headers.map((column) => (
-                              <div
-                                {...column.getHeaderProps()}
-                                style={{ flex: '1 1 150px', display: 'flex' }}
-                              >
-                                {column.render('Header')}
-                              </div>
-                            ))}
-                          </div>
-                        ))}
-                      </div>
-                      <div {...getTableBodyProps()}>
-                        {rows.map((row, i) => {
-                          prepareRow(row);
-                          return (
-                            <div {...row.getRowProps()} style={{ display: 'flex' }}>
-                              {row.cells.map((cell) => (
-                                <div
-                                  {...cell.getCellProps()}
-                                  style={{ flex: '1 1 150px', display: 'flex' }}
-                                >
-                                  {cell.render('Cell', {
-                                    updateData: (value) =>
-                                      updateData(row.index, cell.column.id, value),
-                                  })}
-                                </div>
-                              ))}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
+                    {/* <AuctionSetSheet
+                      categoryId={18711}
+                    /> */}
+                    <AuctionForm categoryId={18711} />
                   </Box>
                 </ChakraProvider>
               </TabPanel>

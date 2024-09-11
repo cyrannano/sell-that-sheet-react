@@ -56,6 +56,18 @@ const AuctionSetCreator = () => {
 
   const handleFileAction = (action) => {
     switch (action.id) {
+      case 'mouse_click_file':
+        if(action.payload.clickType !== 'double') {
+          break;
+        }
+        if (action.payload.file && action.payload.file.isDir) {
+          setFolderChain((prev) => [
+            ...prev,
+            { id: action.payload.file.id, name: action.payload.file.name, fc: true },
+          ]);
+        }
+
+        break;
       case 'go-up':
         setFolderChain((prev) => prev.slice(0, -1));
         break;
@@ -90,6 +102,29 @@ const AuctionSetCreator = () => {
         setLatestCategories={() => {}}
       />
       <SimpleGrid spacing={5} minHeight="800px">
+        <Box height={"500px"}>
+          <FullFileBrowser
+              overflow="hidden"
+              files={files}
+              folderChain={folderChain}
+              onFileAction={handleFileAction}
+              fileActions={[
+                defineFileAction({
+                  id: 'create_auction_product',
+                  hotkeys: ['ctrl+k'],
+                  button: {
+                    name: 'Utwórz produkt',
+                    toolbar: true,
+                    contextMenu: true,
+                    icon: ChonkyIconName.database,
+                    color: 'primary',
+                  },
+                  requiresSelection: true,
+                }),
+              ]}
+            />
+        </Box>
+          
         <Tabs overflowX="hidden">
           <TabList>
             {usedCategories.map((category, index) => (
@@ -111,26 +146,7 @@ const AuctionSetCreator = () => {
             ))}
           </TabPanels>
         </Tabs>
-        <FullFileBrowser
-          overflow="hidden"
-          files={files}
-          folderChain={folderChain}
-          onFileAction={handleFileAction}
-          fileActions={[
-            defineFileAction({
-              id: 'create_auction_product',
-              hotkeys: ['ctrl+k'],
-              button: {
-                name: 'Utwórz produkt',
-                toolbar: true,
-                contextMenu: true,
-                icon: ChonkyIconName.database,
-                color: 'primary',
-              },
-              requiresSelection: true,
-            }),
-          ]}
-        />
+       
       </SimpleGrid>
     </Card>
   );

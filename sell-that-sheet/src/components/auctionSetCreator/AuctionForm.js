@@ -34,22 +34,28 @@ const ChakraField = ({ label, children, disabled, ...props }) => (
   </FormControl>
 );
 
-const AuctionForm = ({ categoryId, offerObject }) => {
+const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions }) => {
   const [formFields, setFormFields] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [auctions, setAuctions] = useState([]);
+  // const [auctions, setAuctions] = useState([]);
   const [selectedAuction, setSelectedAuction] = useState(null); // State to track the selected auction for editing
+  const [newAuctionData, setNewAuctionData] = useState(null);
 
   useEffect(() => {
+    if (categoryId === null) {
+      return;
+    }
     const loadFormFields = async () => {
       if (offerObject) {
         setFormFields(offerObject);
+        setNewAuctionData(offerObject);
         setLoading(false);
-      } else {
-        const parameters = await fetchCategoryParameters(categoryId);
-        setFormFields(parameters);
-        setLoading(false);
-      }
+      } 
+      // else {
+      //   const parameters = await fetchCategoryParameters(categoryId);
+      //   setFormFields(parameters);
+      //   setLoading(false);
+      // }
     };
 
     loadFormFields();
@@ -103,15 +109,17 @@ const AuctionForm = ({ categoryId, offerObject }) => {
   };
 
   // Get initial values from form fields
-  const getInitialValues = (fields, selectedAuctionData) => {
+  const getInitialValues = (fields, selectedAuctionData, newAuctionData) => {
     return fields.reduce((values, field) => {
       if (selectedAuctionData) {
         values[field.name] =
           selectedAuctionData[field.id] ||
           selectedAuctionData.customParams[field.id] ||
           '';
+      } else if (newAuctionData) {
+        values[field.name] = newAuctionData.find((e) => e.id === field.id)?.value || '';
       } else {
-        values[field.name] = '';
+          values[field.name] = '';
       }
       return values;
     }, {});
@@ -138,6 +146,7 @@ const AuctionForm = ({ categoryId, offerObject }) => {
       setAuctions(updatedAuctions);
     } else {
       // Add new auction
+      console.log('Adding new auction', auction);
       setAuctions([...auctions, auction]);
     }
     actions.setSubmitting(false);
@@ -177,7 +186,7 @@ const AuctionForm = ({ categoryId, offerObject }) => {
           <Spinner />
         ) : (
           <Formik
-            initialValues={getInitialValues(formFields, auctions[selectedAuction])}
+            initialValues={getInitialValues(formFields, auctions[selectedAuction], newAuctionData)}
             validationSchema={validationSchema}
             enableReinitialize={true} // Ensures form is updated when `initialValues` changes
             onSubmit={handleFormSubmit}
@@ -236,8 +245,8 @@ const AuctionForm = ({ categoryId, offerObject }) => {
           </Formik>
         )}
       </Box>
-      <Box p={4}>
-        <AuctionList auctions={auctions} onEditAuction={handleEditAuction} onRemoveAuction={handleRemoveAuction}/> {/* Pass the edit handler */}
+      <Box p={4} maxW="50%">
+        <AuctionList auctions={auctions.filter(e => e.categoryBase == categoryId)} onEditAuction={handleEditAuction} onRemoveAuction={handleRemoveAuction}/> {/* Pass the edit handler */}
       </Box>
 
     </Box>

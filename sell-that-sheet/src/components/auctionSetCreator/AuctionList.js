@@ -1,22 +1,42 @@
-import React from 'react';
-import { Box, Button, Spinner } from '@chakra-ui/react';
-import { List, ListItem, OrderedList } from '@chakra-ui/react';
+import React, { useEffect, useState } from 'react';
+import { Box, Heading, Spinner } from '@chakra-ui/react';
+import AuctionListElement from './AuctionListElement';
+import { getPhotosetThumbnailURL } from 'contexts/AuthContext';
 
-const AuctionList = ({auctions, onEditAuction, onRemoveAuction}) => {
+const AuctionList = ({ auctions, onEditAuction, onRemoveAuction }) => {
+    const [thumbnails, setThumbnails] = useState([]);  // Store the resolved thumbnail URLs
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchThumbnails = async () => {
+            if (auctions && Array.isArray(auctions)) {
+                const urls = await Promise.all(auctions.map(auction => getPhotosetThumbnailURL(auction.photosetBase)));
+                setThumbnails(urls);
+                setLoading(false);
+            }
+        };
+
+        fetchThumbnails();
+    }, [auctions]);  // Fetch thumbnails whenever the auctions prop changes
+
+    if (loading) {
+        return <Spinner size="xl" />;
+    }
+
     return (
-        // print out all auctions in a list if auctions is not empty and is an array
         <Box>
-            <h2>Aukcje</h2>
-            <OrderedList spacing={2}>
+            <Heading size='md'>Aukcje</Heading>
+            <Box>
                 {auctions && Array.isArray(auctions) && auctions.map((auction, index) => (
-                    <ListItem onClick={() => onEditAuction(index)} key={index} cursor={'pointer'}>
-                        {auction.nameBase}
-                        <Button onClick={() => onRemoveAuction(index)} colorScheme="red" size="xs" ml={2}>
-                            Usuń
-                        </Button>
-                    </ListItem>
+                    <AuctionListElement 
+                        key={index} 
+                        thumbnail={thumbnails[index]}  // Use the resolved thumbnail URL from state
+                        name={auction.nameBase} 
+                        onEditAuction={() => onEditAuction(index)} 
+                        onRemoveAuction={() => onRemoveAuction(index)} 
+                    />
                 ))}
-            </OrderedList>
+            </Box>
         </Box>
     );
 };

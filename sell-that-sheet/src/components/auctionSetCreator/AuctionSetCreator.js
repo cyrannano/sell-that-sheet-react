@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useAuth, browseDirectory, getCategoryParameters } from 'contexts/AuthContext';
+import { useAuth, browseDirectory, getCategoryParameters, createPhotoSet, createCategoryOfferObject } from 'contexts/AuthContext';
 import {
   Box,
   SimpleGrid,
@@ -25,6 +25,12 @@ const AuctionSetCreator = () => {
   const [currentProducts, setCurrentProducts] = useState([]);
   const [usedCategories, setUsedCategories] = useState([null]);
   const [showCreateProductModal, setShowCreateProductModal] = useState(false);
+  const [photos, setPhotos] = useState([]);
+  const [currentCategory, setCurrentCategory] = useState(null);
+  const [photoset, setPhotoset] = useState([]);
+  const [auctions, setAuctions] = useState([]);
+  const [newProductName, setNewProductName] = useState('');
+  const [activeTabIndex, setActiveTabIndex] = useState(0);
 
   useEffect(() => {
     const fetchFiles = async () => {
@@ -34,20 +40,63 @@ const AuctionSetCreator = () => {
     fetchFiles();
   }, [folderChain]);
 
-  useEffect(() => {
-    const fetchCategoryParameters = async () => {
-      const data = await getCategoryParameters(254699);
-      setCategoryParameters(data.parameters);
+  const fetchCategoryParameters = async (categoryId) => {
+    try {
+      const response = await createCategoryOfferObject(categoryId);
+      return response;
+    } catch (error) {
+      console.error('Failed to fetch category parameters', error);
+      return [];
+    }
+  };
 
-      const productTemplate = data.parameters.map((param) => [param.id, '']);
-      const newProducts = Array.from({ length: 10 }, () => Object.fromEntries(productTemplate));
-      setCurrentProducts(newProducts);
-    };
-    fetchCategoryParameters();
-  }, []);
+  // useEffect(() => {
+  //   // const fetchCategoryParameters = async () => {
+  //   //   const data = await getCategoryParameters(category);
+  //   //   setCategoryParameters(data.parameters);
 
-  const createProduct = (folderChain, photos) => {
-    // Add functionality for creating a product
+  //   //   const productTemplate = data.parameters.map((param) => [param.id, '']);
+  //   //   const newProducts = Array.from({ length: 10 }, () => Object.fromEntries(productTemplate));
+  //   //   setCurrentProducts(newProducts);
+  //   // };
+  //   // fetchCategoryParameters();
+  // }, []);
+
+  const createProduct = async (selectedCategory, productName, folderChain, photos) => {
+    console.log(selectedCategory, productName, folderChain, photos);
+    if(usedCategories.length == 1 && usedCategories[0] === null) {
+      setUsedCategories([selectedCategory]);
+    } else if(!usedCategories.map(e => e.id).includes(selectedCategory.id)) {
+      setUsedCategories([...usedCategories, selectedCategory]);
+      setActiveTabIndex(usedCategories.length - 1);
+    }
+
+    setNewProductName(productName);
+    setCurrentCategory(selectedCategory.id);
+    const photoset = await createPhotoSet(photos.map((e) => e.name), folderChain.filter(e => e.id !== 'root').map((e) => e.name).join('/'), photos[0].name);
+    
+    console.log('photoset', photoset);
+    fetchCategoryParameters(selectedCategory.id).then((data) => {
+      let _data = data;
+      _data.categoryId = selectedCategory.id;
+      _data.map((param) => {
+        switch(param.name) {
+          case 'photoset':
+            param.value = photoset.id;
+            break;
+          case 'categoryId':
+            param.value = selectedCategory.id;
+            break;
+          case 'name':
+            param.value = productName;
+            break;
+          default:
+            break;
+        }
+      });
+      setCategoryParameters(_data);
+      setShowCreateProductModal(false);
+    });
   };
 
   const openCreateProductModal = () => {
@@ -83,6 +132,7 @@ const AuctionSetCreator = () => {
         }
         break;
       case 'create_auction_product':
+        setPhotos(action.state.selectedFiles);
         openCreateProductModal();
         break;
       default:
@@ -97,7 +147,7 @@ const AuctionSetCreator = () => {
         onClose={() => setShowCreateProductModal(false)}
         createProductFunction={createProduct}
         folderChain={folderChain}
-        photos={[]}
+        photos={photos}
         latestCategories={[]}
         setLatestCategories={() => {}}
       />
@@ -125,7 +175,7 @@ const AuctionSetCreator = () => {
             />
         </Box>
           
-        <Tabs overflowX="hidden">
+        <Tabs overflowX="hidden" onChange={(idx) => setCurrentCategory(usedCategories[idx].id)}>
           <TabList>
             {usedCategories.map((category, index) => (
               <Tab key={index}>{category === null ? 'Nowa kategoria' : category.name}</Tab>
@@ -136,10 +186,7 @@ const AuctionSetCreator = () => {
               <TabPanel key={index} p={0} width="100%">
                 <ChakraProvider>
                   <Box overflow="auto">
-                    {/* <AuctionSetSheet
-                      categoryId={18711}
-                    /> */}
-                    <AuctionForm categoryId={18711} />
+                    <AuctionForm offerObject={categoryParameters} categoryId={currentCategory} auctions={auctions} setAuctions={setAuctions} auctionName={newProductName}/>
                   </Box>
                 </ChakraProvider>
               </TabPanel>

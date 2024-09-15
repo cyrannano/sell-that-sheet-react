@@ -168,7 +168,9 @@ export const CreateProductModal = ({ isOpen, onClose, createProductFunction, fol
 
                         {!loadingCategories && <VStack spacing={'12px'} align={'left'}>
                             {bestMatchingCategories.map((category) => (
-                                <Radio value={category.id} onClick={() => setSelectedCategory(category)}>{buildCategoryTree(category)} <Text ml='12px' as='em'>{category.id}</Text></Radio>
+                                <FormLabel onClick={() => setSelectedCategory(category)}>
+                                    <Radio value={category.id}>{buildCategoryTree(category)} <Text ml='12px' as='em'>{category.id}</Text></Radio>
+                                </FormLabel>
                             ))}
                         </VStack>
                         }

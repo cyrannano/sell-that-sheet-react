@@ -5,7 +5,7 @@ const AuthContext = createContext();
 
 
 const api = axios.create({
-	baseURL: 'http://192.168.3.27:8000/',
+	baseURL: 'http://192.168.3.69:8000/',
 });
 
 api.interceptors.request.use((config) => {
@@ -109,10 +109,11 @@ const paramNameTranslation = {
   'description': 'Opis',
   'serial_numbers': 'Numery seryjne',
   'shipment_price': 'Cena wysyłki',
+  'category': 'Kategoria',
 }
 
 const requiredBaseParameters = ['name', 'price_pln', 'shipment_price'];
-const disabledBaseParameters = ['id'];
+const disabledBaseParameters = ['id', 'photoset', 'category'];
 
 export const createCategoryOfferObject = async (categoryId) => {
   const categoryParameters = await getCategoryParameters(categoryId);
@@ -124,7 +125,7 @@ export const createCategoryOfferObject = async (categoryId) => {
       id: param.name + 'Base',
       type: (param.type.includes('Char') ? 'string' : 'float'),
       base: true,
-      value: '',
+      value: param.name === 'category' ? categoryId : '',
       required: requiredBaseParameters.includes(param.name),
       disabled: disabledBaseParameters.includes(param.name),
     }
@@ -132,6 +133,43 @@ export const createCategoryOfferObject = async (categoryId) => {
 
   const parameters = baseParameters.concat(categoryParameters.parameters);
   return parameters;
+}
+
+export const addPhotos = async (photos) => {
+  return Promise.all(photos.map((photo) => addPhoto(photo)));
+}
+
+export const addPhoto = async (photo) => {
+  // returns {id: 1, name: 'photo.jpg'}
+  const response = await api.post('/photos/', {name: photo});
+  return response.data;
+}
+
+export const createPhotoSet = async (photos, directory, thumbnail) => {
+  if(!photos.includes(thumbnail)) {
+    photos = [thumbnail, ...photos];
+  }
+
+  const addedPhotos = await addPhotos(photos);
+  const addedPhotosIds = addedPhotos.map((photo) => photo.id);
+  const photoset = {
+    directory_location: directory,
+    thumbnail: addedPhotosIds[0],
+    photos: addedPhotosIds,
+  };
+  
+  const response = await api.post('/photosets/', photoset);
+  return response.data;
+}
+
+export const getPhotosetThumbnailURL = async (photosetId) => {
+  const response = await api.get(`/photosets/${photosetId}`);
+  const thumbnailId = response.data.thumbnail;
+  const thumbnailref = response.data.directory_location;
+
+  const thumbnailResponse = await api.get(`/photos/${thumbnailId}`);
+
+  return `http://172.27.70.154/thumbnails/${thumbnailref}/${thumbnailResponse.data.name}`;
 }
 
 export { api };

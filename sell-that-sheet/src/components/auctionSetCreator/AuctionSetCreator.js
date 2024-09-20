@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useAuth, browseDirectory, getCategoryParameters, createPhotoSet, createCategoryOfferObject } from 'contexts/AuthContext';
+import { useAuth, browseDirectory, getCategoryParameters, createPhotoSet, createCategoryOfferObject, processAuctions } from 'contexts/AuthContext';
 import {
   Box,
   SimpleGrid,
@@ -11,12 +11,15 @@ import {
   ChakraProvider,
   Select,
 } from '@chakra-ui/react';
+import { Button, ButtonGroup, IconButton } from '@chakra-ui/react'
 import { FullFileBrowser, defineFileAction, ChonkyIconName } from 'chonky';
 import Card from 'components/card/Card';
 import '@silevis/reactgrid/styles.css';
 import { CreateProductModal } from './CreateProductModal';
 import AuctionSetSheet from './AuctionSetSheet';
 import AuctionForm from './AuctionForm';
+import { AddIcon, DownloadIcon } from '@chakra-ui/icons';
+import { parse } from 'stylis';
 
 const AuctionSetCreator = () => {
   const [folderChain, setFolderChain] = useState([{ id: 'root', name: 'Zdjęcia', fc: true }]);
@@ -61,6 +64,21 @@ const AuctionSetCreator = () => {
   //   // };
   //   // fetchCategoryParameters();
   // }, []);
+
+  const handleDownload = () => {
+    // parse auctions and prepare for upload
+    // upload auction data to api endpoint
+    // then
+    // call download endpoint with the returned id of auction set
+    processAuctions(auctions, folderChain).then((auctionSet) => {
+      console.log('Auction Set Created:', auctionSet);
+    })
+    .catch((error) => {
+      console.error('Error processing auctions:', error);
+    });
+
+    console.log('Auctions:', auctions);
+  };
 
   const createProduct = async (selectedCategory, productName, folderChain, photos) => {
     console.log(selectedCategory, productName, folderChain, photos);
@@ -175,7 +193,14 @@ const AuctionSetCreator = () => {
             />
         </Box>
           
-        <Tabs overflowX="hidden" onChange={(idx) => setCurrentCategory(usedCategories[idx].id)}>
+        <Tabs overflowX="hidden" onChange={(idx) => {
+            setCurrentCategory(usedCategories[idx].id);
+            
+          }}>
+          <ButtonGroup colorScheme={'green'} variant='solid' size='md' isAttached>
+            <Button onClick={() => {alert("Jeszcze nie zaimplementowane")}}>Wystaw do Baselinker'a</Button>
+            <IconButton onClick={handleDownload} aria-label='Pobierz plik z pakietem' icon={<DownloadIcon/>} />
+          </ButtonGroup>
           <TabList>
             {usedCategories.map((category, index) => (
               <Tab key={index}>{category === null ? 'Nowa kategoria' : category.name}</Tab>

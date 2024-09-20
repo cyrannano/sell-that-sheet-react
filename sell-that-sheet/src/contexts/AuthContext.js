@@ -172,4 +172,102 @@ export const getPhotosetThumbnailURL = async (photosetId) => {
   return `http://172.27.70.154/thumbnails/${thumbnailref}/${thumbnailResponse.data.name}`;
 }
 
+// Function to add an auction
+export const addAuction = async (auctionData) => {
+  const response = await api.post('/auctions/', auctionData);
+  return response.data; // Should return the created auction with its ID
+};
+
+// Function to get a parameter by allegro_id
+export const getParameter = async (allegro_id) => {
+  const response = await api.get(`/parameters/?allegro_id=${allegro_id}`);
+  if (response.data.length > 0) {
+    return response.data[0]; // Assuming the API returns a list
+  }
+  return null;
+};
+
+// Function to add a new parameter
+export const addParameter = async (allegro_id) => {
+  const response = await api.post('/parameters/', {
+    allegro_id,
+    name: null,
+    type: null,
+  });
+  return response.data;
+};
+
+// Function to add an auction parameter
+export const addAuctionParameter = async (auctionParameterData) => {
+  const response = await api.post('/auctionparameters/', auctionParameterData);
+  return response.data;
+};
+
+// Function to add an auction set
+export const addAuctionSet = async (auctionSetData) => {
+  const response = await api.post('/auctionsets/', auctionSetData);
+  return response.data;
+};
+
+// Main function to process auctions
+export const processAuctions = async (auctions, folderChain) => {
+  const auctionIds = [];
+
+  // Establish directory_location
+  const directory_location = folderChain
+    .filter((e) => e.id !== 'root')
+    .map((e) => e.name)
+    .join('/');
+
+  for (const auction of auctions) {
+    // Prepare auction data
+    const auctionData = {
+      name: auction.nameBase,
+      price_pln: auction.price_plnBase,
+      price_euro: auction.price_euroBase,
+      tags: auction.tagsBase,
+      serial_numbers: auction.serial_numbersBase,
+      photoset: auction.photosetBase,
+    };
+
+    // Create the auction
+    const createdAuction = await addAuction(auctionData);
+    const auctionId = createdAuction.id;
+    auctionIds.push(auctionId);
+
+    // Process customParams
+    for (const [allegro_id, value_name] of Object.entries(auction.customParams)) {
+      if (value_name) { // Check if value_name is not empty
+        // Check if the parameter exists
+        let parameter = await getParameter(allegro_id);
+        if (!parameter) {
+          // Create the parameter if it doesn't exist
+          parameter = await addParameter(allegro_id);
+        }
+        const parameterId = parameter.id;
+
+        // Prepare auction parameter data
+        const auctionParameterData = {
+          parameter: parameterId,
+          value_name: value_name,
+          value_id: null,
+          auction: auctionId,
+        };
+
+        // Create the auction parameter
+        await addAuctionParameter(auctionParameterData);
+      }
+    }
+  }
+
+  // Create the auction set
+  const auctionSetData = {
+    directory_location,
+    auctions: auctionIds,
+  };
+  const createdAuctionSet = await addAuctionSet(auctionSetData);
+
+  return createdAuctionSet;
+};
+
 export { api };

@@ -128,7 +128,7 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions }) => {
   const validationSchema = buildValidationSchema(formFields);
 
   const handleFormSubmit = (values, actions) => {
-    const auction = { customParams: {} };
+    const auction = { customParams: {}, id: auctions.length + 1};
 
     formFields.forEach((field) => {
       if (field.base) {
@@ -157,20 +157,22 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions }) => {
   };
 
   // Function to fill form with selected auction data
-  const handleEditAuction = (index) => {
-    setSelectedAuction(index); // Set the selected auction for editing
+  const handleEditAuction = (auctionId) => {
+    // find the index of the auction in the auctions array when given index of the auction in the category
+    setSelectedAuction(auctions.findIndex((auction) => auction.id === auctionId));
   };
 
   const confirmAction = (action) => {
     return window.confirm(action);
   };
 
-  const handleRemoveAuction = (index) => {
+  const handleRemoveAuction = (auctionId) => {
     if (!confirmAction('Czy na pewno chcesz usunąć tę aukcję?')) {
       return;
     }
-    const updatedAuctions = auctions.filter((_, idx) => idx !== index);
+    const updatedAuctions = auctions.filter((auction, _) => auction.id !== auctionId);
     setAuctions(updatedAuctions);
+    setSelectedAuction(null); // Reset after removal
   };
 
   const selectDefaultValue = (categoryId, fieldName) => {
@@ -235,18 +237,18 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions }) => {
                 ))}
                 <Button
                   type="submit"
-                  colorScheme="teal"
+                  colorScheme="blue"
                   isLoading={isSubmitting}
                 >
-                  {selectedAuction !== null ? 'Update Auction' : 'Add Auction'}
+                  {selectedAuction !== null ? 'Popraw Aukcję' : 'Dodaj Aukcję'}
                 </Button>
               </Form>
             )}
           </Formik>
         )}
       </Box>
-      <Box p={4} maxW="50%">
-        <AuctionList auctions={auctions.filter(e => e.categoryBase == categoryId)} onEditAuction={handleEditAuction} onRemoveAuction={handleRemoveAuction}/> {/* Pass the edit handler */}
+      <Box p={4}>
+        <AuctionList selectedAuction={auctions[selectedAuction].id} auctions={auctions.filter(e => e.categoryBase == categoryId)} onEditAuction={handleEditAuction} onRemoveAuction={handleRemoveAuction}/> {/* Pass the edit handler */}
       </Box>
 
     </Box>

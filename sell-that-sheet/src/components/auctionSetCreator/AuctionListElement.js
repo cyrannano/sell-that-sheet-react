@@ -15,14 +15,17 @@ const AuctionListElement = ({
   thumbnail,
   onEditAuction,
   onRemoveAuction,
+  selected,
 }) => {
   return (
     <Card
       direction={{ base: "column", sm: "row" }}
       overflow="hidden"
       variant="outline"
+      border={selected ? "1px solid" : null}
       maxW="100%"
       maxH="125px"
+      bg={selected ? "rgba(78, 56, 251, 0.05)" : null}
       size="sm"
       cursor="pointer"
       onClick={() => onEditAuction()}
@@ -40,7 +43,7 @@ const AuctionListElement = ({
         </CardBody>
 
         <CardFooter>
-          <Button variant="solid" colorScheme="red" onClick={() => {onRemoveAuction()}}>
+          <Button variant="solid" size='xs' colorScheme="red" onClick={() => {onRemoveAuction()}}>
             Usuń
           </Button>
         </CardFooter>

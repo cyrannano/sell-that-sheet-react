@@ -21,14 +21,14 @@ import SignInCentered from "views/auth/signIn";
 
 const routes = [
   {
-    name: "Main Dashboard",
+    name: "Opisywanie",
     layout: "/admin",
     path: "/default",
     icon: <Icon as={MdHome} width='20px' height='20px' color='inherit' />,
     component: MainDashboard,
   },
   {
-    name: "NFT Marketplace",
+    name: "Pakiety",
     layout: "/admin",
     path: "/nft-marketplace",
     icon: (
@@ -57,7 +57,7 @@ const routes = [
   //   component: Profile,
   // },
   {
-    name: "Sign In",
+    name: "Logowanie",
     layout: "/auth",
     path: "/sign-in",
     icon: <Icon as={MdLock} width='20px' height='20px' color='inherit' />,

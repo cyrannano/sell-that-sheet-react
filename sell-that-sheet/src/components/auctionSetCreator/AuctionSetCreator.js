@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useAuth, browseDirectory, getCategoryParameters, createPhotoSet, createCategoryOfferObject, processAuctions } from 'contexts/AuthContext';
+import { useAuth, browseDirectory, getCategoryParameters, createPhotoSet, createCategoryOfferObject, processAuctions, downloadSheet } from 'contexts/AuthContext';
 import {
   Box,
   SimpleGrid,
@@ -10,6 +10,8 @@ import {
   Tabs,
   ChakraProvider,
   Select,
+  InputGroup,
+  Input,
 } from '@chakra-ui/react';
 import { Button, ButtonGroup, IconButton } from '@chakra-ui/react'
 import { FullFileBrowser, defineFileAction, ChonkyIconName } from 'chonky';
@@ -34,6 +36,7 @@ const AuctionSetCreator = () => {
   const [auctions, setAuctions] = useState([]);
   const [newProductName, setNewProductName] = useState('');
   const [activeTabIndex, setActiveTabIndex] = useState(0);
+  const [auctionSetName, setAuctionSetName] = useState(null);
 
   useEffect(() => {
     const fetchFiles = async () => {
@@ -53,6 +56,11 @@ const AuctionSetCreator = () => {
     }
   };
 
+  const selectAllCategories = () => {
+    // setCurrentCategory(null);
+    alert('To będzie działało, ale jeszcze nie teraz')
+  };
+
   // useEffect(() => {
   //   // const fetchCategoryParameters = async () => {
   //   //   const data = await getCategoryParameters(category);
@@ -65,13 +73,24 @@ const AuctionSetCreator = () => {
   //   // fetchCategoryParameters();
   // }, []);
 
+  const handleSave = () => {
+    processAuctions(auctions, folderChain, auctionSetName).then((auctionSet) => {
+      console.log('Auction Set Created:', auctionSet);
+    })
+    .catch((error) => {
+      console.error('Error processing auctions:', error);
+    });
+  };
+
   const handleDownload = () => {
     // parse auctions and prepare for upload
     // upload auction data to api endpoint
     // then
     // call download endpoint with the returned id of auction set
-    processAuctions(auctions, folderChain).then((auctionSet) => {
+    processAuctions(auctions, folderChain, auctionSetName).then((auctionSet) => {
       console.log('Auction Set Created:', auctionSet);
+      downloadSheet(auctionSet.id);
+
     })
     .catch((error) => {
       console.error('Error processing auctions:', error);
@@ -194,17 +213,27 @@ const AuctionSetCreator = () => {
         </Box>
           
         <Tabs overflowX="hidden" onChange={(idx) => {
+            if (idx === usedCategories.length) {
+              selectAllCategories();
+              setActiveTabIndex(0);
+              return;
+            }
             setCurrentCategory(usedCategories[idx].id);
             
           }}>
-          <ButtonGroup colorScheme={'green'} variant='solid' size='md' isAttached>
-            <Button onClick={() => {alert("Jeszcze nie zaimplementowane")}}>Wystaw do Baselinker'a</Button>
-            <IconButton onClick={handleDownload} aria-label='Pobierz plik z pakietem' icon={<DownloadIcon/>} />
-          </ButtonGroup>
+          <InputGroup>
+            <ButtonGroup colorScheme={'green'} variant='solid' size='md' isAttached>
+              <Button onClick={() => {alert("Jeszcze nie zaimplementowane")}}>Wystaw do Baselinker'a</Button>
+              <IconButton onClick={handleDownload} aria-label='Pobierz plik z pakietem' icon={<DownloadIcon/>} />
+              <IconButton onClick={handleSave} aria-label='Zapisz pakiet' icon={<AddIcon/>} />
+            </ButtonGroup>
+            <Input placeholder="Nazwa pakietu" ml='5px' size='md' onChange={(e) => setAuctionSetName(e.target.value)} />
+          </InputGroup>
           <TabList>
             {usedCategories.map((category, index) => (
               <Tab key={index}>{category === null ? 'Nowa kategoria' : category.name}</Tab>
             ))}
+            <Tab key={-1}>Wszystkie</Tab>
           </TabList>
           <TabPanels overflowX="scroll">
             {usedCategories.map((_, index) => (

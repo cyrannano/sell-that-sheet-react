@@ -5,7 +5,8 @@ const AuthContext = createContext();
 
 
 const api = axios.create({
-	baseURL: 'http://192.168.3.69:8000/',
+	baseURL: 'http://172.27.198.154:8000/' // For development,
+	// baseURL: 'http://172.27.70.154:8000/',
 });
 
 api.interceptors.request.use((config) => {
@@ -68,6 +69,12 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
+export const makeAllegroAuthCall = async () => {
+  const response = await api.get('/allegro/login/');
+  // the enpoint returns a URL to open in a new tab
+  window.open(response.data.authorization_url, '_blank'); 
+};
+
 export const browseDirectory = async (directory) => {
   let dirpath = directory.map((item) => item.name == "Zdjęcia" ? "" : item.name);
   if(dirpath.length > 1) {
@@ -115,6 +122,20 @@ const paramNameTranslation = {
 const requiredBaseParameters = ['name', 'price_pln', 'shipment_price'];
 const disabledBaseParameters = ['id', 'photoset', 'category'];
 
+const getParamType = (param) => {
+  if (param.name == 'description') {
+    return 'textarea';
+  }
+
+  if (param.type.includes('Char')) {
+    return 'string';
+  } else if (param.type.includes('Float')) {
+    return 'float';
+  } else {
+    return 'string';
+  }
+}
+
 export const createCategoryOfferObject = async (categoryId) => {
   const categoryParameters = await getCategoryParameters(categoryId);
   const offerModel = await api.get('/model-structure/sell_that_sheet/auction');
@@ -123,7 +144,7 @@ export const createCategoryOfferObject = async (categoryId) => {
       name: param.name,
       displayName: paramNameTranslation[param.name] || param.name,
       id: param.name + 'Base',
-      type: (param.type.includes('Char') ? 'string' : 'float'),
+      type: getParamType(param),
       base: true,
       value: param.name === 'category' ? categoryId : '',
       required: requiredBaseParameters.includes(param.name),
@@ -210,7 +231,7 @@ export const addAuctionSet = async (auctionSetData) => {
 };
 
 // Main function to process auctions
-export const processAuctions = async (auctions, folderChain) => {
+export const processAuctions = async (auctions, folderChain, auctionSetName) => {
   const auctionIds = [];
 
   // Establish directory_location
@@ -228,6 +249,9 @@ export const processAuctions = async (auctions, folderChain) => {
       tags: auction.tagsBase,
       serial_numbers: auction.serial_numbersBase,
       photoset: auction.photosetBase,
+      description: auction.descriptionBase,
+      shipment_price: auction.shipment_priceBase,
+      category: auction.categoryBase
     };
 
     // Create the auction
@@ -250,7 +274,7 @@ export const processAuctions = async (auctions, folderChain) => {
         const auctionParameterData = {
           parameter: parameterId,
           value_name: value_name,
-          value_id: null,
+          value_id: 123,
           auction: auctionId,
         };
 
@@ -262,12 +286,48 @@ export const processAuctions = async (auctions, folderChain) => {
 
   // Create the auction set
   const auctionSetData = {
-    directory_location,
+    name: auctionSetName,
+    directory_location: directory_location,
     auctions: auctionIds,
   };
   const createdAuctionSet = await addAuctionSet(auctionSetData);
 
   return createdAuctionSet;
+};
+
+export const downloadSheet = async (auctionSetId) => {
+  try {
+    const response = await api.get(`/download/auctionset/${auctionSetId}`, {
+      responseType: 'blob',
+    });
+
+    // Create a Blob from the response data
+    const blob = new Blob([response.data], { type: response.data.type });
+    const url = window.URL.createObjectURL(blob);
+
+    // Create a temporary anchor element to trigger the download
+    const link = document.createElement('a');
+    link.href = url;
+
+    // Set the default filename or extract from headers if available
+    link.setAttribute('download', 'auction_set.xlsx');
+
+    // Append to the document and initiate download
+    document.body.appendChild(link);
+    link.click();
+
+    // Cleanup
+    link.parentNode.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Error downloading the sheet:', error);
+    // Optionally, notify the user
+  }
+};
+
+export const getAuctionSets = async () => {
+  const response = await api.get('/auctionsets/');
+  return response.data;
 };
 
 export { api };

@@ -10,6 +10,7 @@ import {
   Select,
   FormErrorMessage,
   Spinner,
+  Textarea,
 } from '@chakra-ui/react';
 import { createCategoryOfferObject } from 'contexts/AuthContext';
 import AuctionList from 'components/auctionSetCreator/AuctionList';
@@ -194,47 +195,53 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions }) => {
             onSubmit={handleFormSubmit}
           >
             {({ isSubmitting }) => (
-              <Form>
-                {formFields.map((field) => (
-                  <Field key={field.id} name={field.name}>
-                    {({ field: formikField, form: { errors, touched } }) => (
-                      <ChakraField
-                        label={field.displayName || field.name}
-                        name={formikField.name}
-                        touched={touched[formikField.name]}
-                        error={errors[formikField.name]}
-                        disabled={field.disabled}
-                      >
-                        {field.type === 'dictionary' &&
-                        !field.restrictions?.multipleChoices ? (
-                          <Select
-                            {...formikField}
-                            defaultValue={selectDefaultValue(categoryId, field.name)}
-                          >
-                            <option value=""></option>
-                            {field.dictionary.map((option) => (
-                              <option key={option.id} value={option.value}>
-                                {option.value}
-                              </option>
-                            ))}
-                          </Select>
-                        ) : (
-                          <Input
-                            {...formikField}
-                            disabled={field.disabled}
-                            type={field.type === 'float' ? 'number' : 'text'}
-                            size={field.disabled ? 'xs' : 'md'}
-                            step={
-                              field.type === 'float' && field.restrictions?.precision
-                                ? Math.pow(10, -field.restrictions.precision)
-                                : undefined
-                            }
-                          />
-                        )}
-                      </ChakraField>
-                    )}
-                  </Field>
-                ))}
+            <Form>
+              {formFields.map((field) => (
+                <Field key={field.id} name={field.name}>
+                  {({ field: formikField, form: { errors, touched } }) => (
+                    <ChakraField
+                      label={field.displayName || field.name}
+                      name={formikField.name}
+                      touched={touched[formikField.name]}
+                      error={errors[formikField.name]}
+                      disabled={field.disabled}
+                    >
+                      {field.type === 'dictionary' &&
+                      !field.restrictions?.multipleChoices ? (
+                        <Select
+                          {...formikField}
+                          defaultValue={selectDefaultValue(categoryId, field.name)}
+                        >
+                          <option value=""></option>
+                          {field.dictionary.map((option) => (
+                            <option key={option.id} value={option.value}>
+                              {option.value}
+                            </option>
+                          ))}
+                        </Select>
+                      ) : field.type === 'textarea' ? (
+                        <Textarea
+                          {...formikField}
+                          disabled={field.disabled}
+                          size={field.disabled ? 'xs' : 'md'}
+                        />
+                      ) : (
+                        <Input
+                          {...formikField}
+                          disabled={field.disabled}
+                          type={field.type === 'float' ? 'number' : 'text'}
+                          size={field.disabled ? 'xs' : 'md'}
+                          step={
+                            field.type === 'float' && field.restrictions?.precision
+                              ? Math.pow(10, -field.restrictions.precision)
+                              : undefined
+                          }
+                        />
+                      )}
+                    </ChakraField>
+                  )}
+                </Field>
+              ))}
                 <Button
                   type="submit"
                   colorScheme="blue"
@@ -248,7 +255,7 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions }) => {
         )}
       </Box>
       <Box p={4}>
-        <AuctionList selectedAuction={auctions[selectedAuction].id} auctions={auctions.filter(e => e.categoryBase == categoryId)} onEditAuction={handleEditAuction} onRemoveAuction={handleRemoveAuction}/> {/* Pass the edit handler */}
+        <AuctionList selectedAuction={auctions[selectedAuction]?.id} auctions={(categoryId === -1) ? auctions : auctions.filter(e => e.categoryBase == categoryId)} onEditAuction={handleEditAuction} onRemoveAuction={handleRemoveAuction}/> {/* Pass the edit handler */}
       </Box>
 
     </Box>

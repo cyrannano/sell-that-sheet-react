@@ -20,7 +20,8 @@
 
 */
 
-import React from "react";
+import React, { useEffect } from "react";
+import { useState } from "react";
 
 // Chakra imports
 import {
@@ -32,37 +33,87 @@ import {
   Text,
   useColorModeValue,
   SimpleGrid,
+  TableContainer,
+  IconButton,
+  Table,
+  TableCaption,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
 } from "@chakra-ui/react";
 
+// Chakra icons
+import { DownloadIcon } from "@chakra-ui/icons";
+
+
 // Custom components
-import Banner from "views/admin/marketplace/components/Banner";
-import TableTopCreators from "views/admin/marketplace/components/TableTopCreators";
-import HistoryItem from "views/admin/marketplace/components/HistoryItem";
-import NFT from "components/card/NFT";
-import Card from "components/card/Card.js";
+// import Banner from "views/admin/marketplace/components/Banner";
+// import TableTopCreators from "views/admin/marketplace/components/TableTopCreators";
+// import HistoryItem from "views/admin/marketplace/components/HistoryItem";
+// import NFT from "components/card/NFT";
+// import Card from "components/card/Card.js";
 
 // Assets
-import Nft1 from "assets/img/nfts/Nft1.png";
-import Nft2 from "assets/img/nfts/Nft2.png";
-import Nft3 from "assets/img/nfts/Nft3.png";
-import Nft4 from "assets/img/nfts/Nft4.png";
-import Nft5 from "assets/img/nfts/Nft5.png";
-import Nft6 from "assets/img/nfts/Nft6.png";
-import Avatar1 from "assets/img/avatars/avatar1.png";
-import Avatar2 from "assets/img/avatars/avatar2.png";
-import Avatar3 from "assets/img/avatars/avatar3.png";
-import Avatar4 from "assets/img/avatars/avatar4.png";
-import tableDataTopCreators from "views/admin/marketplace/variables/tableDataTopCreators.json";
-import { tableColumnsTopCreators } from "views/admin/marketplace/variables/tableColumnsTopCreators";
+// import Nft1 from "assets/img/nfts/Nft1.png";
+// import Nft2 from "assets/img/nfts/Nft2.png";
+// import Nft3 from "assets/img/nfts/Nft3.png";
+// import Nft4 from "assets/img/nfts/Nft4.png";
+// import Nft5 from "assets/img/nfts/Nft5.png";
+// import Nft6 from "assets/img/nfts/Nft6.png";
+// import Avatar1 from "assets/img/avatars/avatar1.png";
+// import Avatar2 from "assets/img/avatars/avatar2.png";
+// import Avatar3 from "assets/img/avatars/avatar3.png";
+// import Avatar4 from "assets/img/avatars/avatar4.png";
+// import tableDataTopCreators from "views/admin/marketplace/variables/tableDataTopCreators.json";
+// import { tableColumnsTopCreators } from "views/admin/marketplace/variables/tableColumnsTopCreators";
+import { useAuth, getAuctionSets, downloadSheet } from "contexts/AuthContext";
 
 export default function Marketplace() {
   // Chakra Color Mode
-  const textColor = useColorModeValue("secondaryGray.900", "white");
-  const textColorBrand = useColorModeValue("brand.500", "white");
+  const [auctionSets, setAuctionSets] = useState([]);
+
+  useEffect(() => {
+    const fetchAuctionSets = async () => {
+      const response = await getAuctionSets();
+      setAuctionSets(response);
+    };
+    fetchAuctionSets();
+  }, []);
+
+
+
   return (
     <Box pt={{ base: "180px", md: "80px", xl: "80px" }}>
+      <TableContainer>
+        <Table variant='simple'>
+          <TableCaption>Lista pakietów</TableCaption>
+          <Thead>
+            <Tr>
+              <Th>Nazwa pakietu</Th>
+              <Th>Utworzono</Th>
+              <Th>Autor</Th>
+              <Th></Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {auctionSets.sort((a,b) => {return (a.id < b.id) ? 1 : -1}).map((auctionSet) => (
+              <Tr key={auctionSet.id}>
+                <Td>{auctionSet.name || auctionSet.directory_location}</Td>
+                <Td>{new Date(auctionSet.created_at).toLocaleString()}</Td>
+                <Td>{auctionSet.creator}</Td>
+                <Td>
+                  <IconButton onClick={() => {downloadSheet(auctionSet.id)}} aria-label="Pobierz" icon={<DownloadIcon />} />
+                </Td>
+              </Tr>
+            ))}
+          </Tbody>
+        </Table>
+      </TableContainer>
+
       {/* Main Fields */}
-      <Grid
+      {/* <Grid
         mb='20px'
         gridTemplateColumns={{ xl: "repeat(3, 1fr)", "2xl": "1fr 0.46fr" }}
         gap={{ base: "20px", xl: "20px" }}
@@ -299,7 +350,7 @@ export default function Marketplace() {
           </Card>
         </Flex>
       </Grid>
-      {/* Delete Product */}
+      Delete Product */}
     </Box>
   );
 }

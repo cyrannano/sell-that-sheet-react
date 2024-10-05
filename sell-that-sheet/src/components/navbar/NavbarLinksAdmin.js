@@ -2,6 +2,7 @@
 import {
 	Avatar,
 	Button,
+	ButtonGroup,
 	Flex,
 	Icon,
 	Image,
@@ -25,7 +26,7 @@ import { MdNotificationsNone, MdInfoOutline } from 'react-icons/md';
 import { FaEthereum } from 'react-icons/fa';
 import routes from 'routes.js';
 import { ThemeEditor } from './ThemeEditor';
-import { useAuth } from 'contexts/AuthContext';
+import { useAuth, makeAllegroAuthCall } from 'contexts/AuthContext';
 
 
 
@@ -173,6 +174,11 @@ export default function HeaderLinks(props) {
 			{/* <ThemeEditor navbarIcon={navbarIcon} /> */}
 
 			<Menu>
+				<ButtonGroup>
+					<Button onClick={makeAllegroAuthCall} colorScheme={'orange'}>
+					Autoryzuj w Allegro
+					</Button>
+				</ButtonGroup>
 				<MenuButton p="0px">
 					<Avatar
 						_hover={{ cursor: 'pointer' }}

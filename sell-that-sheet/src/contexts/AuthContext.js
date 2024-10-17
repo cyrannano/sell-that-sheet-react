@@ -117,10 +117,11 @@ const paramNameTranslation = {
   'serial_numbers': 'Numery seryjne',
   'shipment_price': 'Cena wysyłki',
   'category': 'Kategoria',
+  'amount': 'Ilość',
 }
 
 const requiredBaseParameters = ['name', 'price_pln', 'shipment_price'];
-const disabledBaseParameters = ['id', 'photoset', 'category'];
+const disabledBaseParameters = ['id', 'photoset', 'category', 'created_at'];
 
 const getParamType = (param) => {
   if (param.name == 'description') {
@@ -251,7 +252,8 @@ export const processAuctions = async (auctions, folderChain, auctionSetName) => 
       photoset: auction.photosetBase,
       description: auction.descriptionBase,
       shipment_price: auction.shipment_priceBase,
-      category: auction.categoryBase
+      category: auction.categoryBase,
+      amount: auction.amountBase,
     };
 
     // Create the auction
@@ -324,6 +326,11 @@ export const downloadSheet = async (auctionSetId) => {
     // Optionally, notify the user
   }
 };
+
+export const pushAuctionSetToBaselinker = async (auctionSetId) => {
+  const response = await api.post(`/auctionsets/baselinker/upload/${auctionSetId}`);
+  return response.data;
+}
 
 export const getAuctionSets = async () => {
   const response = await api.get('/auctionsets/');

@@ -100,9 +100,9 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions }) => {
         }
       }
 
-      // if (field.required) {
-      //   validator = validator.required(`${field.displayName || field.name} is required`);
-      // }
+      if (field.required) {
+        validator = validator.required(`Pole ${field.displayName || field.name} jest wymagane`);
+      }
 
       schemaFields[field.name] = validator;
     });

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useAuth, browseDirectory, getCategoryParameters, createPhotoSet, createCategoryOfferObject, processAuctions, downloadSheet } from 'contexts/AuthContext';
+import { useAuth, browseDirectory, getCategoryParameters, createPhotoSet, createCategoryOfferObject, processAuctions, downloadSheet, pushAuctionSetToBaselinker } from 'contexts/AuthContext';
 import {
   Box,
   SimpleGrid,
@@ -22,6 +22,10 @@ import AuctionSetSheet from './AuctionSetSheet';
 import AuctionForm from './AuctionForm';
 import { AddIcon, DownloadIcon } from '@chakra-ui/icons';
 import { parse } from 'stylis';
+import { ToastContainer, toast } from 'react-toastify';
+import { Spinner } from '@chakra-ui/react'
+import 'react-toastify/dist/ReactToastify.css';
+
 
 const AuctionSetCreator = () => {
   const [folderChain, setFolderChain] = useState([{ id: 'root', name: 'Zdjęcia', fc: true }]);
@@ -37,6 +41,7 @@ const AuctionSetCreator = () => {
   const [newProductName, setNewProductName] = useState('');
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [auctionSetName, setAuctionSetName] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchFiles = async () => {
@@ -76,9 +81,35 @@ const AuctionSetCreator = () => {
   const handleSave = () => {
     processAuctions(auctions, folderChain, auctionSetName).then((auctionSet) => {
       console.log('Auction Set Created:', auctionSet);
+      return auctionSet.id;
     })
     .catch((error) => {
       console.error('Error processing auctions:', error);
+    });
+  };
+
+  const handlePushToBaselinker = () => {
+    // push auctions to baselinker
+    // save auctionSet
+    const auctionSetId = processAuctions(auctions, folderChain, auctionSetName).then((auctionSet) => {
+
+      console.log('Auction Set ID:', auctionSet.id);
+      // push to baselinker
+      // after push, toast success or error
+      
+      // during push add spinner
+      setLoading(true);
+
+      pushAuctionSetToBaselinker(auctionSet.id).then((response) => {
+        console.log('Pushed to Baselinker:', response);
+        toast.success('Pomyślnie wystawiono produkty na Baselinkerze');
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error('Error pushing to Baselinker:', error);
+        toast.error('Wystąpił błąd podczas wystawiania produktów na Baselinkerze');
+        setLoading(false);
+      });
     });
   };
 
@@ -178,6 +209,11 @@ const AuctionSetCreator = () => {
   };
 
   return (
+    <>
+    {/* if loading add overlay with spinner and blur everything below */}
+    {loading && <Box position="fixed" top="0" left="0" width="100%" height="100%" bg="rgba(0,0,0,0.5)" zIndex="1000" display="flex" justifyContent="center" alignItems="center">
+      <Spinner />
+    </Box>}
     <Card py="15px">
       <CreateProductModal
         isOpen={showCreateProductModal}
@@ -223,7 +259,7 @@ const AuctionSetCreator = () => {
           }}>
           <InputGroup>
             <ButtonGroup colorScheme={'green'} variant='solid' size='md' isAttached>
-              <Button onClick={() => {alert("Jeszcze nie zaimplementowane")}}>Wystaw do Baselinker'a</Button>
+              <Button onClick={handlePushToBaselinker}>Wystaw do Baselinker'a</Button>
               <IconButton onClick={handleDownload} aria-label='Pobierz plik z pakietem' icon={<DownloadIcon/>} />
               <IconButton onClick={handleSave} aria-label='Zapisz pakiet' icon={<AddIcon/>} />
             </ButtonGroup>
@@ -249,7 +285,23 @@ const AuctionSetCreator = () => {
         </Tabs>
        
       </SimpleGrid>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        transition="Bounce"
+        />
+        {/* Same as */}
+      <ToastContainer />
     </Card>
+    </>
   );
 };
 

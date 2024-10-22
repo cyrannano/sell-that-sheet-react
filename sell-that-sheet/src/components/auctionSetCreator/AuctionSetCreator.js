@@ -25,6 +25,8 @@ import { parse } from 'stylis';
 import { ToastContainer, toast } from 'react-toastify';
 import { Spinner } from '@chakra-ui/react'
 import 'react-toastify/dist/ReactToastify.css';
+import Lightbox from 'react-image-lightbox';
+import 'react-image-lightbox/style.css';
 
 
 const AuctionSetCreator = () => {
@@ -42,6 +44,9 @@ const AuctionSetCreator = () => {
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [auctionSetName, setAuctionSetName] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [fileBrowserImages, setFileBrowserImages] = useState([]);
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [photoIndex, setPhotoIndex] = useState(0);
 
   useEffect(() => {
     const fetchFiles = async () => {
@@ -50,6 +55,14 @@ const AuctionSetCreator = () => {
     };
     fetchFiles();
   }, [folderChain]);
+
+  // when files are updated update fileBrowserImages
+  useEffect(() => {
+    const images = files.filter((file) => file.name.toLowerCase().match(/\.(jpeg|jpg|png|gif)$/));
+    const imagesUrls = images.map((image) => image.thumbnailUrl.replace('thumbnails', 'images'));
+    setFileBrowserImages(imagesUrls);
+  }, [files]);
+
 
   const fetchCategoryParameters = async (categoryId) => {
     try {
@@ -182,6 +195,9 @@ const AuctionSetCreator = () => {
             ...prev,
             { id: action.payload.file.id, name: action.payload.file.name, fc: true },
           ]);
+        }else if (action.payload.file && action.payload.file.name.toLowerCase().match(/\.(jpeg|jpg|png|gif)$/)) {
+          setGalleryOpen(true);
+          setPhotoIndex(fileBrowserImages.indexOf(action.payload.file.thumbnailUrl.replace('thumbnails', 'images')));
         }
 
         break;
@@ -301,6 +317,20 @@ const AuctionSetCreator = () => {
         {/* Same as */}
       <ToastContainer />
     </Card>
+    {galleryOpen && (
+        <Lightbox
+          mainSrc={fileBrowserImages[photoIndex]}
+          nextSrc={fileBrowserImages[(photoIndex + 1) % fileBrowserImages.length]}
+          prevSrc={fileBrowserImages[(photoIndex + fileBrowserImages.length - 1) % fileBrowserImages.length]}
+          onCloseRequest={() => setGalleryOpen(false)}
+          onMovePrevRequest={() =>
+            setPhotoIndex((photoIndex + fileBrowserImages.length - 1) % fileBrowserImages.length)
+          }
+          onMoveNextRequest={() =>
+            setPhotoIndex((photoIndex + 1) % fileBrowserImages.length)
+          }
+        />
+      )}
     </>
   );
 };

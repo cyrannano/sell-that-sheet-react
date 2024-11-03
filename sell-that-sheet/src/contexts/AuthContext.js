@@ -122,6 +122,8 @@ const paramNameTranslation = {
 
 const requiredBaseParameters = ['name', 'price_pln', 'shipment_price'];
 const disabledBaseParameters = ['id', 'photoset', 'category', 'created_at'];
+const ignoredBaseParameters = ['serial_numbers'];
+
 
 const getParamType = (param) => {
   if (param.name == 'description') {
@@ -140,7 +142,8 @@ const getParamType = (param) => {
 export const createCategoryOfferObject = async (categoryId) => {
   const categoryParameters = await getCategoryParameters(categoryId);
   const offerModel = await api.get('/model-structure/sell_that_sheet/auction');
-  const baseParameters = offerModel.data.structure.map((param) => {
+  const withoutIgnoredBaseParameters = offerModel.data.structure.filter((param) => !ignoredBaseParameters.includes(param.name));
+  const baseParameters = withoutIgnoredBaseParameters.map((param) => {
     return {
       name: param.name,
       displayName: paramNameTranslation[param.name] || param.name,
@@ -275,7 +278,7 @@ export const processAuctions = async (auctions, folderChain, auctionSetName) => 
         // Prepare auction parameter data
         const auctionParameterData = {
           parameter: parameterId,
-          value_name: value_name,
+          value_name: value_name.toString(),
           value_id: 123,
           auction: auctionId,
         };

@@ -7,11 +7,13 @@ import {
   FormControl,
   FormLabel,
   Input,
-  Select,
   FormErrorMessage,
   Spinner,
   Textarea,
+  Checkbox,
+  CheckboxGroup
 } from '@chakra-ui/react';
+import WindowedSelect from 'react-windowed-select';
 import { createCategoryOfferObject } from 'contexts/AuthContext';
 import AuctionList from 'components/auctionSetCreator/AuctionList';
 
@@ -98,6 +100,10 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions }) => {
             `Maximum length is ${field.restrictions.maxLength}`
           );
         }
+      }
+
+      if (field.type === 'dictionary' && field.restrictions?.multipleChoices) {
+        validator = Yup.array().of(Yup.string());
       }
 
       if (field.required) {
@@ -195,53 +201,64 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions }) => {
             onSubmit={handleFormSubmit}
           >
             {({ isSubmitting }) => (
-            <Form>
-              {formFields.map((field) => (
-                <Field key={field.id} name={field.name}>
-                  {({ field: formikField, form: { errors, touched } }) => (
-                    <ChakraField
-                      label={field.displayName || field.name}
-                      name={formikField.name}
-                      touched={touched[formikField.name]}
-                      error={errors[formikField.name]}
-                      disabled={field.disabled}
-                    >
-                      {field.type === 'dictionary' &&
-                      !field.restrictions?.multipleChoices ? (
-                        <Select
-                          {...formikField}
-                          defaultValue={selectDefaultValue(categoryId, field.name)}
-                        >
-                          <option value=""></option>
-                          {field.dictionary.map((option) => (
-                            <option key={option.id} value={option.value}>
-                              {option.value}
-                            </option>
-                          ))}
-                        </Select>
-                      ) : field.type === 'textarea' ? (
-                        <Textarea
-                          {...formikField}
-                          disabled={field.disabled}
-                          size={field.disabled ? 'xs' : 'md'}
-                        />
-                      ) : (
-                        <Input
-                          {...formikField}
-                          disabled={field.disabled}
-                          type={field.type === 'float' ? 'number' : 'text'}
-                          size={field.disabled ? 'xs' : 'md'}
-                          step={
-                            field.type === 'float' && field.restrictions?.precision
-                              ? Math.pow(10, -field.restrictions.precision)
-                              : undefined
-                          }
-                        />
-                      )}
-                    </ChakraField>
-                  )}
-                </Field>
-              ))}
+              <Form>
+                {formFields.map((field) => (
+                  <Field key={field.id} name={field.name}>
+                    {({ field: formikField, form: { errors, touched, setFieldValue, values } }) => (
+                      <ChakraField
+                        label={field.displayName || field.name}
+                        name={formikField.name}
+                        touched={touched[formikField.name]}
+                        error={errors[formikField.name]}
+                        disabled={field.disabled}
+                      >
+                        {field.type === 'dictionary' && field.restrictions?.multipleChoices ? (
+                          <CheckboxGroup
+                            value={values[field.name] || []} // Ensure the field value is an array for multiple choices
+                            onChange={(selectedValues) => setFieldValue(field.name, selectedValues)}
+                          >
+                            {field.dictionary.map((option) => (
+                              <Checkbox
+                                mr={6}
+                                key={option.id}
+                                value={option.value}
+                                isDisabled={field.disabled}
+                              >
+                                {option.value}
+                              </Checkbox>
+                            ))}
+                          </CheckboxGroup>
+                        ) : field.type === 'dictionary' && !field.restrictions?.multipleChoices ? (
+                          <WindowedSelect
+                            value={values[field.name] ? { value: values[field.name], label: values[field.name] } : null}
+                            onChange={(selectedOption) => setFieldValue(field.name, selectedOption ? selectedOption.value : '')}
+                            options={field.dictionary.map((option) => ({ value: option.value, label: option.value }))}
+                            isDisabled={field.disabled}
+                            placeholder="Wybierz z listy"
+                          />
+                        ) : field.type === 'textarea' ? (
+                          <Textarea
+                            {...formikField}
+                            disabled={field.disabled}
+                            size={field.disabled ? 'xs' : 'md'}
+                          />
+                        ) : (
+                          <Input
+                            {...formikField}
+                            disabled={field.disabled}
+                            type={field.type === 'float' ? 'number' : 'text'}
+                            size={field.disabled ? 'xs' : 'md'}
+                            step={
+                              field.type === 'float' && field.restrictions?.precision
+                                ? Math.pow(10, -field.restrictions.precision)
+                                : undefined
+                            }
+                          />
+                        )}
+                      </ChakraField>
+                    )}
+                  </Field>
+                ))}
                 <Button
                   type="submit"
                   colorScheme="blue"

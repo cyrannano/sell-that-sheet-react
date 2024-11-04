@@ -11,7 +11,9 @@ import {
   Spinner,
   Textarea,
   Checkbox,
-  CheckboxGroup
+  CheckboxGroup,
+  InputGroup,
+  InputRightAddon
 } from '@chakra-ui/react';
 import WindowedSelect from 'react-windowed-select';
 import { createCategoryOfferObject } from 'contexts/AuthContext';
@@ -43,6 +45,7 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions }) => {
   // const [auctions, setAuctions] = useState([]);
   const [selectedAuction, setSelectedAuction] = useState(null); // State to track the selected auction for editing
   const [newAuctionData, setNewAuctionData] = useState(null);
+  const [titleCounter, setTitleCounter] = useState(0);
 
   useEffect(() => {
     if (categoryId === null) {
@@ -75,13 +78,13 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions }) => {
         if (field.restrictions?.min !== undefined) {
           validator = validator.min(
             field.restrictions.min,
-            `Minimum value is ${field.restrictions.min}`
+            `Minimalna wartość: ${field.restrictions.min}`
           );
         }
         if (field.restrictions?.max !== undefined) {
           validator = validator.max(
             field.restrictions.max,
-            `Maximum value is ${field.restrictions.max}`
+            `Maksymalna wartość: ${field.restrictions.max}`
           );
         }
       }
@@ -91,13 +94,13 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions }) => {
         if (field.restrictions?.minLength !== undefined) {
           validator = validator.min(
             field.restrictions.minLength,
-            `Minimum length is ${field.restrictions.minLength}`
+            `Minimalna długość: ${field.restrictions.minLength}`
           );
         }
         if (field.restrictions?.maxLength !== undefined) {
           validator = validator.max(
             field.restrictions.maxLength,
-            `Maximum length is ${field.restrictions.maxLength}`
+            `Maksymalna długość: ${field.restrictions.maxLength}`
           );
         }
       }
@@ -106,7 +109,9 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions }) => {
         validator = Yup.array().of(Yup.string());
       }
 
-      if (field.required) {
+      const notRequiredOverload = 'Numer';
+
+      if (field.required && !field.name.includes(notRequiredOverload)) {
         validator = validator.required(`Pole ${field.displayName || field.name} jest wymagane`);
       }
 
@@ -187,6 +192,27 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions }) => {
     return '';
   };
 
+  const wrapComponent = (field, component) => {
+    if (field.id === 'nameBase') {
+      const handleChange = (event) => {
+        setTitleCounter(event.target.value.length);
+        component.props.onChange(event);
+      };
+  
+      return (
+        <InputGroup attached>
+          {React.cloneElement(component, {
+            onChange: handleChange, // Add event handling to the component
+          })}
+          <InputRightAddon>{titleCounter}</InputRightAddon>
+        </InputGroup>
+      );
+    }
+  
+    // Return the component unwrapped or a default if needed
+    return component;
+  };
+
   return (
     // create side by side form and list of auctions
     <Box display='grid' gridGap={2} gridAutoFlow={'column dense'} >
@@ -242,7 +268,7 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions }) => {
                             disabled={field.disabled}
                             size={field.disabled ? 'xs' : 'md'}
                           />
-                        ) : (
+                        ) : wrapComponent(field, 
                           <Input
                             {...formikField}
                             disabled={field.disabled}

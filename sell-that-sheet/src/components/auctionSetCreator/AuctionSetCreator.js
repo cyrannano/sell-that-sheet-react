@@ -60,6 +60,8 @@ const AuctionSetCreator = () => {
   useEffect(() => {
     const images = files.filter((file) => file.name.toLowerCase().match(/\.(jpeg|jpg|png|gif)$/));
     const imagesUrls = images.map((image) => image.thumbnailUrl.replace('thumbnails', 'images'));
+    // order images by name
+    imagesUrls.sort((a, b) => a.localeCompare(b));
     setFileBrowserImages(imagesUrls);
   }, [files]);
 

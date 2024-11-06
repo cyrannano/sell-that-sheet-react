@@ -47,12 +47,15 @@ const AuctionSetCreator = () => {
   const [fileBrowserImages, setFileBrowserImages] = useState([]);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [photoIndex, setPhotoIndex] = useState(0);
+  const [creatingProduct, setCreatingProduct] = useState(false);
+
+  const fetchFiles = async () => {
+    const files = await browseDirectory(folderChain);
+    setFiles(files);
+  };
 
   useEffect(() => {
-    const fetchFiles = async () => {
-      const files = await browseDirectory(folderChain);
-      setFiles(files);
-    };
+    setCreatingProduct(false);
     fetchFiles();
   }, [folderChain]);
 
@@ -179,6 +182,8 @@ const AuctionSetCreator = () => {
       });
       setCategoryParameters(_data);
       setShowCreateProductModal(false);
+      setCreatingProduct(true);
+      setFiles(photos);
     });
   };
 
@@ -244,6 +249,7 @@ const AuctionSetCreator = () => {
       />
       <SimpleGrid spacing={5} minHeight="800px">
         <Box height={"500px"}>
+          {creatingProduct ? <Button colorScheme={'red'} onClick={() => {setCreatingProduct(false); fetchFiles(folderChain);}}>Anuluj</Button> : <></>}
           <FullFileBrowser
               overflow="hidden"
               files={files}
@@ -265,7 +271,7 @@ const AuctionSetCreator = () => {
               ]}
             />
         </Box>
-          
+        <Box>
         <Tabs overflowX="hidden" onChange={(idx) => {
             if (idx === usedCategories.length) {
               selectAllCategories();
@@ -301,6 +307,7 @@ const AuctionSetCreator = () => {
             ))}
           </TabPanels>
         </Tabs>
+        </Box>
        
       </SimpleGrid>
       <ToastContainer

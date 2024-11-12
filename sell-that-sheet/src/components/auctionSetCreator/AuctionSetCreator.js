@@ -57,6 +57,7 @@ const AuctionSetCreator = () => {
   useEffect(() => {
     setCreatingProduct(false);
     fetchFiles();
+    console.log(auctions);
   }, [folderChain]);
 
   // when files are updated update fileBrowserImages
@@ -231,6 +232,11 @@ const AuctionSetCreator = () => {
     }
   };
 
+  const resetFileBrowserView = () => {
+    setCreatingProduct(false);
+     fetchFiles(folderChain);
+  };
+
   return (
     <>
     {/* if loading add overlay with spinner and blur everything below */}
@@ -249,7 +255,7 @@ const AuctionSetCreator = () => {
       />
       <SimpleGrid spacing={5} minHeight="800px">
         <Box height={"500px"}>
-          {creatingProduct ? <Button colorScheme={'red'} onClick={() => {setCreatingProduct(false); fetchFiles(folderChain);}}>Anuluj</Button> : <></>}
+          {creatingProduct ? <Button colorScheme={'red'} onClick={() => {resetFileBrowserView();}}>Anuluj</Button> : <></>}
           <FullFileBrowser
               overflow="hidden"
               files={files}
@@ -300,7 +306,7 @@ const AuctionSetCreator = () => {
               <TabPanel key={index} p={0} width="100%">
                 <ChakraProvider>
                   <Box overflow="auto">
-                    <AuctionForm offerObject={categoryParameters} categoryId={currentCategory} auctions={auctions} setAuctions={setAuctions} auctionName={newProductName}/>
+                    <AuctionForm offerObject={categoryParameters} categoryId={currentCategory} auctions={auctions} setAuctions={setAuctions} auctionName={newProductName} resetFileBrowserView={resetFileBrowserView}/>
                   </Box>
                 </ChakraProvider>
               </TabPanel>

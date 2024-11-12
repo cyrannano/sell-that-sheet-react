@@ -39,7 +39,7 @@ const ChakraField = ({ label, children, disabled, ...props }) => (
   </FormControl>
 );
 
-const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions }) => {
+const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFileBrowserView }) => {
   const [formFields, setFormFields] = useState([]);
   const [loading, setLoading] = useState(true);
   // const [auctions, setAuctions] = useState([]);
@@ -164,6 +164,7 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions }) => {
     actions.setSubmitting(false);
     actions.resetForm();
     setSelectedAuction(null); // Reset after submission
+    resetFileBrowserView();
     // scroll to top of the page
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };

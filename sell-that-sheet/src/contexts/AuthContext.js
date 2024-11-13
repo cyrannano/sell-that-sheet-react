@@ -340,4 +340,21 @@ export const getAuctionSets = async () => {
   return response.data;
 };
 
+export const previewTags = async (categoryId, name, tags) => {
+  const response = await api.post('/tag-preview/', {
+    "categoryId": categoryId,
+    "auctionName": name,
+    "auctionTags": tags,
+  });
+  return response.data;
+}
+
+export const performOCR = async (photoPath) => {
+  const response = await api.post('/api/perform-ocr/', {
+    "image_path": photoPath,
+  });
+  return response.data;
+}
+
+
 export { api };

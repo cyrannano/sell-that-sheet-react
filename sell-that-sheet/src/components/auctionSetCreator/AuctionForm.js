@@ -13,10 +13,11 @@ import {
   Checkbox,
   CheckboxGroup,
   InputGroup,
-  InputRightAddon
+  InputRightAddon,
+  InputRightElement
 } from '@chakra-ui/react';
 import WindowedSelect from 'react-windowed-select';
-import { createCategoryOfferObject } from 'contexts/AuthContext';
+import { createCategoryOfferObject, previewTags } from 'contexts/AuthContext';
 import AuctionList from 'components/auctionSetCreator/AuctionList';
 
 // API function to fetch category parameters
@@ -46,7 +47,8 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
   const [selectedAuction, setSelectedAuction] = useState(null); // State to track the selected auction for editing
   const [newAuctionData, setNewAuctionData] = useState(null);
   const [titleCounter, setTitleCounter] = useState(0);
-
+  const [currentAuctionName, setCurrentAuctionName] = useState('');
+  const [currentAuctionTags, setCurrentAuctionTags] = useState('');
   useEffect(() => {
     if (categoryId === null) {
       return;
@@ -197,6 +199,7 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
     if (field.id === 'nameBase') {
       const handleChange = (event) => {
         setTitleCounter(event.target.value.length);
+        setCurrentAuctionName(event.target.value);
         component.props.onChange(event);
       };
   
@@ -209,8 +212,34 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
         </InputGroup>
       );
     }
-  
-    // Return the component unwrapped or a default if needed
+
+    if (field.id === "tagsBase") {
+      const handleChange = (event) => {
+        setCurrentAuctionTags(event.target.value);
+        component.props.onChange(event);
+      };
+
+      const handleClick = () => {
+        const res = previewTags(categoryId, currentAuctionName, currentAuctionTags);
+        res.then((value) => {
+          alert(value);
+        });
+      }
+
+      return (
+        <InputGroup size='md'>
+          {React.cloneElement(component, {
+            onChange: handleChange, // Add event handling to the component
+          })}
+      <InputRightElement width='4.5rem'>
+        <Button h='1.75rem' size='sm' onClick={handleClick}>
+          Podgląd
+        </Button>
+      </InputRightElement>
+    </InputGroup>
+      );
+    }
+
     return component;
   };
 

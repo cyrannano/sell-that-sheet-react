@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useAuth, browseDirectory, getCategoryParameters, createPhotoSet, createCategoryOfferObject, processAuctions, downloadSheet, pushAuctionSetToBaselinker } from 'contexts/AuthContext';
+import { useAuth, browseDirectory, getCategoryParameters, createPhotoSet, createCategoryOfferObject, processAuctions, downloadSheet, pushAuctionSetToBaselinker, performOCR } from 'contexts/AuthContext';
 import {
   Box,
   SimpleGrid,
@@ -28,6 +28,16 @@ import 'react-toastify/dist/ReactToastify.css';
 import Lightbox from 'react-image-lightbox';
 import 'react-image-lightbox/style.css';
 
+import {
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  Textarea,
+} from '@chakra-ui/react';
 
 const AuctionSetCreator = () => {
   const [folderChain, setFolderChain] = useState([{ id: 'root', name: 'Zdjęcia', fc: true }]);
@@ -48,6 +58,9 @@ const AuctionSetCreator = () => {
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [photoIndex, setPhotoIndex] = useState(0);
   const [creatingProduct, setCreatingProduct] = useState(false);
+  const [ocrLoading, setOcrLoading] = useState(false);
+  const [ocrResult, setOcrResult] = useState('');
+  const [showOcrResult, setShowOcrResult] = useState(false);
 
   const fetchFiles = async () => {
     const files = await browseDirectory(folderChain);
@@ -57,7 +70,6 @@ const AuctionSetCreator = () => {
   useEffect(() => {
     setCreatingProduct(false);
     fetchFiles();
-    console.log(auctions);
   }, [folderChain]);
 
   // when files are updated update fileBrowserImages
@@ -237,6 +249,41 @@ const AuctionSetCreator = () => {
      fetchFiles(folderChain);
   };
 
+  // === OCR FUNCTIONALITY ===
+
+  const customButtonStyle = {
+    background: 'none',
+    border: 'none',
+    color: 'white',
+    fontSize: '16px',
+    cursor: 'pointer',
+  };
+
+  const handleOcrButtonClick = async () => {
+    try {
+      setOcrLoading(true);
+  
+      const imageUrl = fileBrowserImages[photoIndex];
+  
+      // Send the image path to the backend
+      const data = await performOCR(imageUrl);
+      const parsedText = data.parsed_text || '';
+  
+      setOcrResult(parsedText);
+      setShowOcrResult(true);
+
+    } catch (error) {
+      console.error('Error performing OCR:', error);
+      alert('An error occurred during OCR processing.');
+    } finally {
+      setOcrLoading(false);
+    }
+  };
+  
+  
+
+  // === OCR FUNCTIONALITY ===
+
   return (
     <>
     {/* if loading add overlay with spinner and blur everything below */}
@@ -335,17 +382,83 @@ const AuctionSetCreator = () => {
     {galleryOpen && (
         <Lightbox
           mainSrc={fileBrowserImages[photoIndex]}
-          nextSrc={fileBrowserImages[(photoIndex + 1) % fileBrowserImages.length]}
-          prevSrc={fileBrowserImages[(photoIndex + fileBrowserImages.length - 1) % fileBrowserImages.length]}
+          nextSrc={
+            fileBrowserImages[(photoIndex + 1) % fileBrowserImages.length]
+          }
+          prevSrc={
+            fileBrowserImages[
+              (photoIndex + fileBrowserImages.length - 1) %
+                fileBrowserImages.length
+            ]
+          }
           onCloseRequest={() => setGalleryOpen(false)}
           onMovePrevRequest={() =>
-            setPhotoIndex((photoIndex + fileBrowserImages.length - 1) % fileBrowserImages.length)
+            setPhotoIndex(
+              (photoIndex + fileBrowserImages.length - 1) %
+                fileBrowserImages.length
+            )
           }
           onMoveNextRequest={() =>
             setPhotoIndex((photoIndex + 1) % fileBrowserImages.length)
           }
+          toolbarButtons={[
+            <button
+              key="ocr-button"
+              onClick={handleOcrButtonClick}
+              style={customButtonStyle}
+              aria-label="Odczytaj tekst z obrazu"
+            >
+              Tekst
+            </button>,
+          ]}
         />
       )}
+
+      {/* Loading Indicator */}
+      {ocrLoading && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '0',
+            left: '0',
+            width: '100%',
+            height: '100%',
+            zIndex: '2000',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Spinner color="white" size="xl" />
+        </div>
+      )}
+
+      {/* OCR Result Modal */}
+      <Modal
+        isOpen={showOcrResult}
+        onClose={() => setShowOcrResult(false)}
+        size="xl"
+      >
+        <ModalOverlay />
+        {/* Make modal stick to the left */}
+        <ModalContent position="absolute" left="0px" bottom="0px" >
+          <ModalHeader>OCR Result</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Textarea value={ocrResult} readOnly rows={10} />
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              colorScheme="blue"
+              mr={3}
+              onClick={() => setShowOcrResult(false)}
+            >
+              Close
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </>
   );
 };

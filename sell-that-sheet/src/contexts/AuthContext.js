@@ -235,7 +235,7 @@ export const addAuctionSet = async (auctionSetData) => {
 };
 
 // Main function to process auctions
-export const processAuctions = async (auctions, folderChain, auctionSetName) => {
+export const processAuctions = async (auctions, folderChain, auctionSetName, ownerId) => {
   const auctionIds = [];
 
   // Establish directory_location
@@ -294,6 +294,7 @@ export const processAuctions = async (auctions, folderChain, auctionSetName) => 
     name: auctionSetName,
     directory_location: directory_location,
     auctions: auctionIds,
+    owner: ownerId,
   };
   const createdAuctionSet = await addAuctionSet(auctionSetData);
 
@@ -354,6 +355,15 @@ export const performOCR = async (photoPath) => {
     "image_path": photoPath,
   });
   return response.data;
+}
+
+const getGroupUsers = async (groupName) => {
+  const response = await api.get(`/api/group-users/${groupName}`);
+  return response.data;
+}
+
+export const getAvailableOwners = async () => {
+  return getGroupUsers('owners');
 }
 
 

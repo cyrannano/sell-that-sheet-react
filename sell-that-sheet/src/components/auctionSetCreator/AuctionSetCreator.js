@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useAuth, browseDirectory, getCategoryParameters, createPhotoSet, createCategoryOfferObject, processAuctions, downloadSheet, pushAuctionSetToBaselinker, performOCR } from 'contexts/AuthContext';
+import { useAuth, getAvailableOwners, browseDirectory, getCategoryParameters, createPhotoSet, createCategoryOfferObject, processAuctions, downloadSheet, pushAuctionSetToBaselinker, performOCR } from 'contexts/AuthContext';
 import {
   Box,
   SimpleGrid,
@@ -61,16 +61,39 @@ const AuctionSetCreator = () => {
   const [ocrLoading, setOcrLoading] = useState(false);
   const [ocrResult, setOcrResult] = useState('');
   const [showOcrResult, setShowOcrResult] = useState(false);
+  const [usedPhotos, setUsedPhotos] = useState([]);
+  const [showIgnoredFiles, setShowIgnoredFiles] = useState(false);
+  const [owners, setOwners] = useState([]);
+  const [selectedOwner, setSelectedOwner] = useState(null);
 
   const fetchFiles = async () => {
-    const files = await browseDirectory(folderChain);
+    let files = await browseDirectory(folderChain);
+    // ignore images that was already used
+    if(!showIgnoredFiles) {
+      files = files.filter((file) => !usedPhotos.includes(file.name));
+    }
     setFiles(files);
   };
+
+  const getOwners = () => {
+    // get owners from API
+    getAvailableOwners().then((data) => {
+      setOwners(data);
+    });
+  };
+
+
+  // On component mount
+  useEffect(() => {
+    getOwners();
+  }, []);
+
+
 
   useEffect(() => {
     setCreatingProduct(false);
     fetchFiles();
-  }, [folderChain]);
+  }, [folderChain, showIgnoredFiles]);
 
   // when files are updated update fileBrowserImages
   useEffect(() => {
@@ -110,11 +133,16 @@ const AuctionSetCreator = () => {
   // }, []);
 
   const handleSave = () => {
-    processAuctions(auctions, folderChain, auctionSetName).then((auctionSet) => {
-      console.log('Auction Set Created:', auctionSet);
+    setLoading(true);
+    processAuctions(auctions, folderChain, auctionSetName, selectedOwner).then((auctionSet) => {
+      // console.log('Auction Set Created:', auctionSet);
+      setLoading(false);
+      toast.success('Pomyślnie zapisano pakiet');
       return auctionSet.id;
     })
     .catch((error) => {
+      setLoading(false);
+      toast.error(error.response.data.detail? error.response.data.detail : 'Wystąpił błąd podczas zapisywania pakietu');
       console.error('Error processing auctions:', error);
     });
   };
@@ -122,17 +150,17 @@ const AuctionSetCreator = () => {
   const handlePushToBaselinker = () => {
     // push auctions to baselinker
     // save auctionSet
-    const auctionSetId = processAuctions(auctions, folderChain, auctionSetName).then((auctionSet) => {
+    // during push add spinner
+    setLoading(true);
+    const auctionSetId = processAuctions(auctions, folderChain, auctionSetName, selectedOwner).then((auctionSet) => {
 
-      console.log('Auction Set ID:', auctionSet.id);
+      // console.log('Auction Set ID:', auctionSet.id);
       // push to baselinker
       // after push, toast success or error
       
-      // during push add spinner
-      setLoading(true);
 
       pushAuctionSetToBaselinker(auctionSet.id).then((response) => {
-        console.log('Pushed to Baselinker:', response);
+        // console.log('Pushed to Baselinker:', response);
         toast.success('Pomyślnie wystawiono produkty na Baselinkerze');
         setLoading(false);
       })
@@ -141,6 +169,11 @@ const AuctionSetCreator = () => {
         toast.error('Wystąpił błąd podczas wystawiania produktów na Baselinkerze');
         setLoading(false);
       });
+    }).catch((error) => {
+      console.error('Error processing auctions:', error);
+
+      toast.error('Wystąpił błąd podczas przetwarzania aukcji:' + error.response.data.detail ? error.response.data.detail : '');
+      setLoading(false);
     });
   };
 
@@ -149,20 +182,21 @@ const AuctionSetCreator = () => {
     // upload auction data to api endpoint
     // then
     // call download endpoint with the returned id of auction set
-    processAuctions(auctions, folderChain, auctionSetName).then((auctionSet) => {
-      console.log('Auction Set Created:', auctionSet);
+    processAuctions(auctions, folderChain, auctionSetName, selectedOwner).then((auctionSet) => {
+      // console.log('Auction Set Created:', auctionSet);
       downloadSheet(auctionSet.id);
-
+      toast.success('Pomyślnie pobrano plik');
     })
     .catch((error) => {
+      toast.error(error.response.data.detail ? error.response.data.detail : 'Wystąpił błąd podczas pobierania pliku');
       console.error('Error processing auctions:', error);
     });
 
-    console.log('Auctions:', auctions);
+    // console.log('Auctions:', auctions);
   };
 
   const createProduct = async (selectedCategory, productName, folderChain, photos) => {
-    console.log(selectedCategory, productName, folderChain, photos);
+    // console.log(selectedCategory, productName, folderChain, photos);
     if(usedCategories.length == 1 && usedCategories[0] === null) {
       setUsedCategories([selectedCategory]);
     } else if(!usedCategories.map(e => e.id).includes(selectedCategory.id)) {
@@ -172,9 +206,10 @@ const AuctionSetCreator = () => {
 
     setNewProductName(productName);
     setCurrentCategory(selectedCategory.id);
+    setUsedPhotos([...usedPhotos, ...photos.map(e => e.name)]);
     const photoset = await createPhotoSet(photos.map((e) => e.name), folderChain.filter(e => e.id !== 'root').map((e) => e.name).join('/'), photos[0].name);
     
-    console.log('photoset', photoset);
+    // console.log('photoset', photoset);
     fetchCategoryParameters(selectedCategory.id).then((data) => {
       let _data = data;
       _data.categoryId = selectedCategory.id;
@@ -303,6 +338,7 @@ const AuctionSetCreator = () => {
       <SimpleGrid spacing={5} minHeight="800px">
         <Box height={"500px"}>
           {creatingProduct ? <Button colorScheme={'red'} onClick={() => {resetFileBrowserView();}}>Anuluj</Button> : <></>}
+          <Button colorScheme={'blue'} onClick={() => {setShowIgnoredFiles(!showIgnoredFiles);}}>{showIgnoredFiles ? "Ukryj" : "Pokaż"} wykorzystane zdjęcia</Button>
           <FullFileBrowser
               overflow="hidden"
               files={files}
@@ -341,6 +377,14 @@ const AuctionSetCreator = () => {
               <IconButton onClick={handleSave} aria-label='Zapisz pakiet' icon={<AddIcon/>} />
             </ButtonGroup>
             <Input placeholder="Nazwa pakietu" ml='5px' size='md' onChange={(e) => setAuctionSetName(e.target.value)} />
+            <Select placeholder="Wybierz właściciela" ml='5px' size='md' onChange={(e) => setSelectedOwner(e.target.value)}>
+              {owners.map((owner) => (
+                <option key={owner.id} value={owner.id}>
+                  {owner.username}
+                </option>
+              ))}
+            </Select>
+        
           </InputGroup>
           <TabList>
             {usedCategories.map((category, index) => (
@@ -368,7 +412,7 @@ const AuctionSetCreator = () => {
         autoClose={5000}
         hideProgressBar={false}
         newestOnTop={false}
-        closeOnClick
+        closeOnClick={true}
         rtl={false}
         pauseOnFocusLoss
         draggable
@@ -376,8 +420,6 @@ const AuctionSetCreator = () => {
         theme="light"
         transition="Bounce"
         />
-        {/* Same as */}
-      <ToastContainer />
     </Card>
     {galleryOpen && (
         <Lightbox

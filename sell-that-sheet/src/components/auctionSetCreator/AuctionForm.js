@@ -55,6 +55,7 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
     }
     const loadFormFields = async () => {
       if (offerObject) {
+        setCurrentAuctionName(offerObject.filter(e => e.id === 'nameBase')[0]?.value);
         setFormFields(offerObject);
         setNewAuctionData(offerObject);
         setLoading(false);

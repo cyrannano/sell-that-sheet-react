@@ -301,7 +301,6 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
                             onChange={(content) => setFieldValue(field.name, content)} // Update Formik state
                             readOnly={field.disabled} // Disable editing if the field is marked as disabled
                             theme="snow" // Use the "snow" theme
-                            style={{ minHeight: '300px' }} // Set a fixed height for the editor
                           />
                         ) : wrapComponent(field, 
                           <Input

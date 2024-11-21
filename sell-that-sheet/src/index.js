@@ -13,6 +13,8 @@ import axios from 'axios';
 import { useAuth } from 'contexts/AuthContext';
 import { setChonkyDefaults } from 'chonky';
 import { ChonkyIconFA } from 'chonky-icon-fontawesome';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 setChonkyDefaults({ iconComponent: ChonkyIconFA });
 
 const PrivateRoute = ({ component: Component, ...rest }) => {
@@ -47,6 +49,7 @@ ReactDOM.render(
 					</BrowserRouter>
 				</ThemeEditorProvider>
 			</React.StrictMode>
+			<ToastContainer />
 		</ChakraProvider>
 	</AuthProvider>,
 	document.getElementById('root')

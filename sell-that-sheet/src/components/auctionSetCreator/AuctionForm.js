@@ -16,6 +16,8 @@ import {
   InputRightAddon,
   InputRightElement
 } from '@chakra-ui/react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import WindowedSelect from 'react-windowed-select';
 import { createCategoryOfferObject, previewTags } from 'contexts/AuthContext';
 import AuctionList from 'components/auctionSetCreator/AuctionList';
@@ -294,10 +296,12 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
                             placeholder="Wybierz z listy"
                           />
                         ) : field.type === 'textarea' ? (
-                          <Textarea
-                            {...formikField}
-                            disabled={field.disabled}
-                            size={field.disabled ? 'xs' : 'md'}
+                          <ReactQuill
+                            value={values[field.name]} // Get the field's value from Formik
+                            onChange={(content) => setFieldValue(field.name, content)} // Update Formik state
+                            readOnly={field.disabled} // Disable editing if the field is marked as disabled
+                            theme="snow" // Use the "snow" theme
+                            style={{ minHeight: '300px' }} // Set a fixed height for the editor
                           />
                         ) : wrapComponent(field, 
                           <Input

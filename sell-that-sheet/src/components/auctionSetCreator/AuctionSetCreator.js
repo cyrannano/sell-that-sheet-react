@@ -27,6 +27,8 @@ import { Spinner } from '@chakra-ui/react'
 import 'react-toastify/dist/ReactToastify.css';
 import Lightbox from 'react-image-lightbox';
 import 'react-image-lightbox/style.css';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 import {
   Modal,
@@ -407,19 +409,6 @@ const AuctionSetCreator = () => {
         </Box>
        
       </SimpleGrid>
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick={true}
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-        transition="Bounce"
-        />
     </Card>
     {galleryOpen && (
         <Lightbox

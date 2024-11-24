@@ -135,6 +135,9 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
           '';
       } else if (newAuctionData) {
         values[field.name] = newAuctionData.find((e) => e.id === field.id)?.value || '';
+        if (field.id === 'descriptionBase') {
+          values[field.name] = '<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>';
+        }
       } else {
           values[field.name] = '';
       }

@@ -161,8 +161,11 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
   const validationSchema = buildValidationSchema(formFields);
 
   function removeOpeningAndTrailingBr(input) {
-    // Use a regex to remove leading and trailing <br/> tags
-    return input.replace(/^(<br\s*\/?>)+|(<br\s*\/?>)+$/gi, '');
+    // Regex to match leading and trailing <br>, <br/>, or <p><br></p> tags
+    return input.replace(
+    /^(<br\s*\/?>|<p>\s*<br\s*\/?>\s*<\/p>)+|(<br\s*\/?>|<p>\s*<br\s*\/?>\s*<\/p>)+$/gi,
+    ''
+    );
   }
 
   const handleFormSubmit = (values, actions) => {

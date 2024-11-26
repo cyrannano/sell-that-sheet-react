@@ -138,6 +138,19 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
         if (field.id === 'descriptionBase') {
           values[field.name] = '<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>';
         }
+
+        const defaultValue = selectDefaultValue(field.name);
+
+        if (defaultValue !== null){
+          // Apply default value
+          values[field.name] = selectDefaultValue(field.name);
+  
+          // Special handling for checkboxes (multiple-choice dictionary)
+          if (field.type === 'dictionary' && field.restrictions?.multipleChoices) {
+            values[field.name] = selectDefaultValue(field.name) || [];
+          }
+        }
+
       } else {
           values[field.name] = '';
       }
@@ -147,12 +160,21 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
 
   const validationSchema = buildValidationSchema(formFields);
 
+  function removeOpeningAndTrailingBr(input) {
+    // Use a regex to remove leading and trailing <br/> tags
+    return input.replace(/^(<br\s*\/?>)+|(<br\s*\/?>)+$/gi, '');
+  }
+
   const handleFormSubmit = (values, actions) => {
     const auction = { customParams: {}, id: auctions.length + 1};
 
     formFields.forEach((field) => {
       if (field.base) {
-        auction[field.id] = values[field.name];
+        if (field.id === 'descriptionBase') {
+          auction[field.id] = removeOpeningAndTrailingBr(values[field.name]);
+        } else {
+          auction[field.id] = values[field.name];
+        }
       } else {
         auction.customParams[field.id] = values[field.name];
       }
@@ -196,9 +218,25 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
     setSelectedAuction(null); // Reset after removal
   };
 
-  const selectDefaultValue = (categoryId, fieldName) => {
-    if (fieldName === 'Stan') return 'Używany';
-    return '';
+  const selectDefaultValue = (fieldName) => {
+    switch (fieldName) {
+      case 'Wersja':
+        return 'Europejska';
+      case 'Typ samochodu':
+        return ['4x4/SUV', 'Samochody osobowe']; // Default multiple-choice
+      case 'amount':
+        return 1;
+      case 'Stan':
+        return 'Używany';
+      case 'Jakość części (zgodnie z GVO)':
+        return 'Q - oryginał z logo producenta części (OEM, OES)';
+      case 'Rodzaj lampy':
+        return 'dedykowana';
+      case 'description':
+        return '<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>';
+      default:
+        return null;
+    }
   };
 
   const wrapComponent = (field, component) => {

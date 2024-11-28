@@ -331,6 +331,11 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
                               </Checkbox>
                             ))}
                           </CheckboxGroup>
+                        ) : field.id === "tagsBase" ? (
+                          wrapComponent(field,<Textarea
+                            disabled={field.disabled}
+                            size={field.disabled ? 'xs' : 'md'}
+                          />)
                         ) : field.type === 'dictionary' && !field.restrictions?.multipleChoices ? (
                           <WindowedSelect
                             value={values[field.name] ? { value: values[field.name], label: values[field.name] } : null}

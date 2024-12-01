@@ -165,6 +165,12 @@ const AuctionSetCreator = () => {
         // console.log('Pushed to Baselinker:', response);
         toast.success('Pomyślnie wystawiono produkty na Baselinkerze');
         setLoading(false);
+
+        // Reset all state
+        setAuctions([]);
+        setAuctionSetName(null);
+        setUsedCategories([null]);
+        
       })
       .catch((error) => {
         console.error('Error pushing to Baselinker:', error);

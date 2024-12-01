@@ -333,6 +333,7 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
                           </CheckboxGroup>
                         ) : field.id === "tagsBase" ? (
                           wrapComponent(field,<Textarea
+                            {...formikField}
                             disabled={field.disabled}
                             size={field.disabled ? 'xs' : 'md'}
                           />)

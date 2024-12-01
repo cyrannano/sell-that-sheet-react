@@ -278,7 +278,7 @@ export const processAuctions = async (auctions, folderChain, auctionSetName, own
         // Prepare auction parameter data
         const auctionParameterData = {
           parameter: parameterId,
-          value_name: value_name.toString(),
+          value_name: Array.isArray(value_name) ? value_name.join('|') : value_name.toString(),
           value_id: 123,
           auction: auctionId,
         };

@@ -366,5 +366,27 @@ export const getAvailableOwners = async () => {
   return getGroupUsers('owners');
 }
 
+export const moveAuctionPhotosToDoneDirectory = async (auctionId) => {
+  const response = await api.get(`/api/complete-files/${auctionId}`);
+  return response.data;
+}
+
+export const moveAuctionSetPhotosToDoneDirectory = async (auctionSetId) => {
+  const response = await api.get(`/api/complete-auctionset-files/${auctionSetId}`);
+  return response.data;
+}
+
+export const createDescriptionTemplate = async (name, content) => {
+  const response = await api.post('/descriptiontemplate/', {
+    "name": name,
+    "content": content,
+  });
+  return response.data;
+}
+
+export const getCurrentUsersDescriptionTemplates = async () => {
+  const response = await api.get('/descriptiontemplate/');
+  return response.data;
+}
 
 export { api };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useAuth, getAvailableOwners, browseDirectory, getCategoryParameters, createPhotoSet, createCategoryOfferObject, processAuctions, downloadSheet, pushAuctionSetToBaselinker, performOCR } from 'contexts/AuthContext';
+import { useAuth, getAvailableOwners, browseDirectory, getCategoryParameters, createPhotoSet, createCategoryOfferObject, processAuctions, downloadSheet, pushAuctionSetToBaselinker, moveAuctionSetPhotosToDoneDirectory, performOCR } from 'contexts/AuthContext';
 import {
   Box,
   SimpleGrid,
@@ -163,7 +163,16 @@ const AuctionSetCreator = () => {
 
       pushAuctionSetToBaselinker(auctionSet.id).then((response) => {
         // console.log('Pushed to Baselinker:', response);
-        toast.success('Pomyślnie wystawiono produkty na Baselinkerze');
+        toast.success('Pomyślnie wystawiono produkty na Baselinkerze. Przenoszenie plików.');
+        moveAuctionSetPhotosToDoneDirectory(auctionSet.id).then((response) => {
+          // console.log('Moved photos to done:', response);
+          toast.success('Pomyślnie przeniesiono zdjęcia do folderu Wystawione');
+        }).catch((error) => {
+          console.error('Error moving photos to Wystawione:', error);
+          toast.error('Wystąpił błąd podczas przenoszenia zdjęć do folderu Wystawione');
+        });
+
+
         setLoading(false);
 
         // Reset all state

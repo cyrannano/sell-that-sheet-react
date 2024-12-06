@@ -14,13 +14,17 @@ import {
   CheckboxGroup,
   InputGroup,
   InputRightAddon,
-  InputRightElement
+  InputRightElement,
+  useDisclosure,
+
 } from '@chakra-ui/react';
+import { ToastContainer, toast } from 'react-toastify';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import WindowedSelect from 'react-windowed-select';
-import { createCategoryOfferObject, previewTags } from 'contexts/AuthContext';
+import { createCategoryOfferObject, previewTags, getCurrentUsersDescriptionTemplates, createDescriptionTemplate} from 'contexts/AuthContext';
 import AuctionList from 'components/auctionSetCreator/AuctionList';
+import DescriptionTemplateModal from 'components/auctionSetCreator/DescriptionTemplateModal';
 
 // API function to fetch category parameters
 const fetchCategoryParameters = async (categoryId) => {
@@ -45,12 +49,15 @@ const ChakraField = ({ label, children, disabled, ...props }) => (
 const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFileBrowserView }) => {
   const [formFields, setFormFields] = useState([]);
   const [loading, setLoading] = useState(true);
-  // const [auctions, setAuctions] = useState([]);
-  const [selectedAuction, setSelectedAuction] = useState(null); // State to track the selected auction for editing
+  const [selectedAuction, setSelectedAuction] = useState(null);
   const [newAuctionData, setNewAuctionData] = useState(null);
   const [titleCounter, setTitleCounter] = useState(0);
   const [currentAuctionName, setCurrentAuctionName] = useState('');
   const [currentAuctionTags, setCurrentAuctionTags] = useState('');
+  const [descriptionTemplates, setDescriptionTemplates] = useState([]);
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  
   useEffect(() => {
     if (categoryId === null) {
       return;
@@ -61,18 +68,12 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
         setFormFields(offerObject);
         setNewAuctionData(offerObject);
         setLoading(false);
-      } 
-      // else {
-      //   const parameters = await fetchCategoryParameters(categoryId);
-      //   setFormFields(parameters);
-      //   setLoading(false);
-      // }
+      }
     };
 
     loadFormFields();
   }, [categoryId, offerObject]);
 
-  // Build validation schema for form fields
   const buildValidationSchema = (fields) => {
     const schemaFields = {};
     fields.forEach((field) => {
@@ -125,7 +126,6 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
     return Yup.object().shape(schemaFields);
   };
 
-  // Get initial values from form fields
   const getInitialValues = (fields, selectedAuctionData, newAuctionData) => {
     return fields.reduce((values, field) => {
       if (selectedAuctionData) {
@@ -138,21 +138,15 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
         if (field.id === 'descriptionBase') {
           values[field.name] = '<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>';
         }
-
         const defaultValue = selectDefaultValue(field.name);
-
-        if (defaultValue !== null){
-          // Apply default value
-          values[field.name] = selectDefaultValue(field.name);
-  
-          // Special handling for checkboxes (multiple-choice dictionary)
+        if (defaultValue !== null) {
+          values[field.name] = defaultValue;
           if (field.type === 'dictionary' && field.restrictions?.multipleChoices) {
-            values[field.name] = selectDefaultValue(field.name) || [];
+            values[field.name] = defaultValue || [];
           }
         }
-
       } else {
-          values[field.name] = '';
+        values[field.name] = '';
       }
       return values;
     }, {});
@@ -161,15 +155,14 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
   const validationSchema = buildValidationSchema(formFields);
 
   function removeOpeningAndTrailingBr(input) {
-    // Regex to match leading and trailing <br>, <br/>, or <p><br></p> tags
     return input.replace(
-    /^(<br\s*\/?>|<p>\s*<br\s*\/?>\s*<\/p>)+|(<br\s*\/?>|<p>\s*<br\s*\/?>\s*<\/p>)+$/gi,
-    ''
+      /^(<br\s*\/?>|<p>\s*<br\s*\/?>\s*<\/p>)+|(<br\s*\/?>|<p>\s*<br\s*\/?>\s*<\/p>)+$/gi,
+      ''
     );
   }
 
   const handleFormSubmit = (values, actions) => {
-    const auction = { customParams: {}, id: auctions.length + 1};
+    const auction = { customParams: {}, id: auctions.length + 1 };
 
     formFields.forEach((field) => {
       if (field.base) {
@@ -184,27 +177,21 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
     });
 
     if (selectedAuction !== null) {
-      // Update existing auction
       const updatedAuctions = auctions.map((a, idx) =>
         idx === selectedAuction ? auction : a
       );
       setAuctions(updatedAuctions);
     } else {
-      // Add new auction
-      console.log('Adding new auction', auction);
       setAuctions([...auctions, auction]);
     }
     actions.setSubmitting(false);
     actions.resetForm();
-    setSelectedAuction(null); // Reset after submission
+    setSelectedAuction(null);
     resetFileBrowserView();
-    // scroll to top of the page
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Function to fill form with selected auction data
   const handleEditAuction = (auctionId) => {
-    // find the index of the auction in the auctions array when given index of the auction in the category
     setSelectedAuction(auctions.findIndex((auction) => auction.id === auctionId));
   };
 
@@ -218,7 +205,7 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
     }
     const updatedAuctions = auctions.filter((auction, _) => auction.id !== auctionId);
     setAuctions(updatedAuctions);
-    setSelectedAuction(null); // Reset after removal
+    setSelectedAuction(null);
   };
 
   const selectDefaultValue = (fieldName) => {
@@ -226,7 +213,7 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
       case 'Wersja':
         return 'Europejska';
       case 'Typ samochodu':
-        return ['4x4/SUV', 'Samochody osobowe']; // Default multiple-choice
+        return ['4x4/SUV', 'Samochody osobowe'];
       case 'amount':
         return 1;
       case 'Stan':
@@ -242,18 +229,48 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
     }
   };
 
-  const wrapComponent = (field, component) => {
+  const loadDescriptionTemplate = async () => {
+    try {
+      const templates = await getCurrentUsersDescriptionTemplates();
+      setDescriptionTemplates(templates);
+      if (templates.length > 0) {
+        onOpen(); // Opens the modal for user to select a template
+      } else {
+        alert('No templates available.');
+      }
+    } catch (error) {
+      console.error('Failed to load description templates', error);
+      alert('Error loading description templates.');
+    }
+  };
+  
+
+  const saveDescriptionTemplate = async (templateName, content) => {
+    try {
+      if (!templateName.trim()) {
+        toast.error('Nazwa szablonu nie może być pusta');
+        return;
+      }
+      await createDescriptionTemplate(templateName, content);
+      toast.success('Szablon zapisany pomyślnie');
+    } catch (error) {
+      console.error('Failed to save description template', error);
+      toast.error('Błąd zapisu szablonu');
+    }
+  };
+
+  const wrapComponent = (field, component, setFieldValue, values) => {
     if (field.id === 'nameBase') {
       const handleChange = (event) => {
         setTitleCounter(event.target.value.length);
         setCurrentAuctionName(event.target.value);
         component.props.onChange(event);
       };
-  
+
       return (
-        <InputGroup attached>
+        <InputGroup>
           {React.cloneElement(component, {
-            onChange: handleChange, // Add event handling to the component
+            onChange: handleChange,
           })}
           <InputRightAddon>{titleCounter}</InputRightAddon>
         </InputGroup>
@@ -291,8 +308,7 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
   };
 
   return (
-    // create side by side form and list of auctions
-    <Box display='grid' gridGap={2} gridAutoFlow={'column dense'} >
+    <Box display="grid" gridGap={2} gridAutoFlow="column dense">
       <Box p={4}>
         {loading ? (
           <Spinner />
@@ -300,14 +316,14 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
           <Formik
             initialValues={getInitialValues(formFields, auctions[selectedAuction], newAuctionData)}
             validationSchema={validationSchema}
-            enableReinitialize={true} // Ensures form is updated when `initialValues` changes
+            enableReinitialize={true}
             onSubmit={handleFormSubmit}
           >
-            {({ isSubmitting }) => (
+            {({ isSubmitting, values, setFieldValue }) => (
               <Form>
                 {formFields.map((field) => (
                   <Field key={field.id} name={field.name}>
-                    {({ field: formikField, form: { errors, touched, setFieldValue, values } }) => (
+                    {({ field: formikField, form: { errors, touched } }) => (
                       <ChakraField
                         label={field.displayName || field.name}
                         name={formikField.name}
@@ -346,12 +362,35 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
                             placeholder="Wybierz z listy"
                           />
                         ) : field.type === 'textarea' ? (
-                          <ReactQuill
-                            value={values[field.name]} // Get the field's value from Formik
-                            onChange={(content) => setFieldValue(field.name, content)} // Update Formik state
-                            readOnly={field.disabled} // Disable editing if the field is marked as disabled
-                            theme="snow" // Use the "snow" theme
-                          />
+                          <>
+          <InputGroup>
+            <Button
+              size="xs"
+              onClick={() => loadDescriptionTemplate(setFieldValue, field.name)}
+              colorScheme="blue"
+            >
+              Wczytaj Szablon
+            </Button>
+            <Button
+              size="xs"
+              onClick={() => {
+                const templateName = prompt('Podaj nazwę szablonu:');
+                if (templateName) saveDescriptionTemplate(templateName, values[field.name]);
+              }}
+              colorScheme="blue"
+            >
+              Zapisz Szablon
+            </Button>
+          </InputGroup>
+          <ReactQuill
+            // value={values[field.name]}
+            // make sure the value updates when the form value changes
+            value={values[field.name]}
+            onChange={(content) => setFieldValue(field.name, content)}
+            readOnly={field.disabled}
+            theme="snow"
+          />
+        </>
                         ) : wrapComponent(field, 
                           <Input
                             {...formikField}
@@ -363,7 +402,9 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
                                 ? Math.pow(10, -field.restrictions.precision)
                                 : undefined
                             }
-                          />
+                          />,
+                          setFieldValue,
+                          values
                         )}
                       </ChakraField>
                     )}
@@ -376,17 +417,28 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
                 >
                   {selectedAuction !== null ? 'Popraw Aukcję' : 'Dodaj Aukcję'}
                 </Button>
+                    <DescriptionTemplateModal
+                  isOpen={isOpen}
+                  onClose={onClose}
+                  templates={descriptionTemplates}
+                  setFieldValue={setFieldValue}
+                  fieldName="description"
+                />
               </Form>
             )}
           </Formik>
         )}
       </Box>
       <Box p={4}>
-        <AuctionList selectedAuction={auctions[selectedAuction]?.id} auctions={(categoryId === -1) ? auctions : auctions.filter(e => e.categoryBase == categoryId)} onEditAuction={handleEditAuction} onRemoveAuction={handleRemoveAuction}/> {/* Pass the edit handler */}
+        <AuctionList
+          selectedAuction={auctions[selectedAuction]?.id}
+          auctions={categoryId === -1 ? auctions : auctions.filter((e) => e.categoryBase == categoryId)}
+          onEditAuction={handleEditAuction}
+          onRemoveAuction={handleRemoveAuction}
+        />
       </Box>
 
     </Box>
-
   );
 };
 

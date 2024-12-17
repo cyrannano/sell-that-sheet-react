@@ -28,10 +28,11 @@ const KeywordTranslationModal = ({ isOpen, onClose, keywords: initialKeywords, c
   // Sync state with props when modal is opened
   useEffect(() => {
     if (isOpen) {
-      setKeywords(initialKeywords);
+      const lowercaseKeywords = initialKeywords.map((keyword) => keyword.toLowerCase());
+      setKeywords(lowercaseKeywords);
       setTranslations({});
-      if (initialKeywords.length > 0) {
-        fetchTranslations(initialKeywords);
+      if (lowercaseKeywords.length > 0) {
+        fetchTranslations(lowercaseKeywords);
       }
     }
   }, [isOpen, initialKeywords]);
@@ -41,7 +42,11 @@ const KeywordTranslationModal = ({ isOpen, onClose, keywords: initialKeywords, c
     setLoading(true);
     try {
       const existingTranslations = await getKeywordTranslationsDe(keywords, "de", category);
-      setTranslations(existingTranslations); // API provides { keyword: translation } object
+      // Ensure all translations are in lowercase
+      const lowercaseTranslations = Object.fromEntries(
+        Object.entries(existingTranslations).map(([key, value]) => [key.toLowerCase(), value?.toLowerCase() || ""])
+      );
+      setTranslations(lowercaseTranslations);
     } catch (error) {
       console.error("Failed to fetch translations:", error);
     } finally {
@@ -50,13 +55,14 @@ const KeywordTranslationModal = ({ isOpen, onClose, keywords: initialKeywords, c
   };
 
   const handleInputChange = (keyword, value) => {
-    setTranslations((prev) => ({ ...prev, [keyword]: value }));
+    setTranslations((prev) => ({ ...prev, [keyword]: value.toLowerCase() }));
   };
 
   const handleAddKeyword = () => {
-    if (newKeyword.trim() && !keywords.includes(newKeyword)) {
-      setKeywords((prev) => [...prev, newKeyword]);
-      setTranslations((prev) => ({ ...prev, [newKeyword]: "" })); // Add empty translation for new keyword
+    const lowercaseKeyword = newKeyword.trim().toLowerCase();
+    if (lowercaseKeyword && !keywords.includes(lowercaseKeyword)) {
+      setKeywords((prev) => [...prev, lowercaseKeyword]);
+      setTranslations((prev) => ({ ...prev, [lowercaseKeyword]: "" }));
       setNewKeyword("");
     }
   };

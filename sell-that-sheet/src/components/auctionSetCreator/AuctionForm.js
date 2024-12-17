@@ -18,13 +18,15 @@ import {
   useDisclosure,
 
 } from '@chakra-ui/react';
+import { EditIcon } from '@chakra-ui/icons';
 import { ToastContainer, toast } from 'react-toastify';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import WindowedSelect from 'react-windowed-select';
-import { createCategoryOfferObject, previewTags, getCurrentUsersDescriptionTemplates, createDescriptionTemplate} from 'contexts/AuthContext';
+import { createCategoryOfferObject, previewTags, getCurrentUsersDescriptionTemplates, createDescriptionTemplate, getKeywordTranslationsDe} from 'contexts/AuthContext';
 import AuctionList from 'components/auctionSetCreator/AuctionList';
 import DescriptionTemplateModal from 'components/auctionSetCreator/DescriptionTemplateModal';
+import KeywordTranslationModal from 'components/auctionSetCreator/KeywordTranslationModal';
 
 // API function to fetch category parameters
 const fetchCategoryParameters = async (categoryId) => {
@@ -56,6 +58,8 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
   const [currentAuctionTags, setCurrentAuctionTags] = useState('');
   const [descriptionTemplates, setDescriptionTemplates] = useState([]);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isTranslationModalOpen, setIsTranslationModalOpen] = useState(false);
+  const [keywords, setKeywords] = useState([]);
 
   
   useEffect(() => {
@@ -259,6 +263,16 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
     }
   };
 
+  const prepareKeywordTranslation = (text) => {
+    const words = text
+    .split(" ")
+    .filter((word) => word.length >= 3 && /^(?!\d+$).+$/.test(word)) // Valid keywords
+    .filter((value, index, self) => self.indexOf(value) === index); // Unique keywords
+
+    setKeywords(words); // Set keywords to pass to the modal
+    setIsTranslationModalOpen(true); // Open modal
+  };
+
   const wrapComponent = (field, component, setFieldValue, values) => {
     if (field.id === 'nameBase') {
       const handleChange = (event) => {
@@ -273,6 +287,18 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
             onChange: handleChange,
           })}
           <InputRightAddon>{titleCounter}</InputRightAddon>
+          <InputRightAddon>
+            <Button
+              size="xs"
+              onClick={(e) => {
+                e.preventDefault();
+                prepareKeywordTranslation(values[field.name]);
+              }}
+            >
+              <EditIcon/>
+            </Button>
+
+          </InputRightAddon>
         </InputGroup>
       );
     }
@@ -423,6 +449,12 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
                   templates={descriptionTemplates}
                   setFieldValue={setFieldValue}
                   fieldName="description"
+                />
+                <KeywordTranslationModal
+                  isOpen={isTranslationModalOpen}
+                  onClose={() => setIsTranslationModalOpen(false)}
+                  keywords={keywords}
+                  category={categoryId}
                 />
               </Form>
             )}

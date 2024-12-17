@@ -389,4 +389,23 @@ export const getCurrentUsersDescriptionTemplates = async () => {
   return response.data;
 }
 
+export const getKeywordTranslationsDe = async (keywords, language, category) => {
+  const response = await api.post('/keyword-translation/search/', {
+    "keywords": keywords,
+    "language": language,
+    "category": category,
+  });
+  return response.data;
+}
+
+export const saveKeywordTranslation = async (keyword, translation, language, category) => {
+  const response = await api.post('/keywordtranslation/', {
+    "original": keyword,
+    "translated": translation,
+    "language": language,
+    "category": category,
+  });
+  return response.data;
+}
+
 export { api };

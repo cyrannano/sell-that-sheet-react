@@ -351,8 +351,12 @@ export const previewTags = async (categoryId, name, tags) => {
 }
 
 export const performOCR = async (photoPath) => {
+  // add timeout to prevent blocking
   const response = await api.post('/api/perform-ocr/', {
     "image_path": photoPath,
+  },
+  {
+    timeout: 10000,
   });
   return response.data;
 }

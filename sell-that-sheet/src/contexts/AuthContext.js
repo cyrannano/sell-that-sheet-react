@@ -5,8 +5,8 @@ const AuthContext = createContext();
 
 
 const api = axios.create({
-	// baseURL: 'http://172.27.198.154:8000/' // For development,
-	baseURL: 'http://172.27.70.154:8000/',
+	baseURL: 'http://172.27.198.154:8000/' // For development,
+	// baseURL: 'http://172.27.70.154:8000/',
 });
 
 api.interceptors.request.use((config) => {
@@ -122,7 +122,7 @@ const paramNameTranslation = {
 
 const requiredBaseParameters = ['name', 'price_pln', 'shipment_price'];
 const disabledBaseParameters = ['id', 'photoset', 'category', 'created_at'];
-const ignoredBaseParameters = [];
+const ignoredBaseParameters = ['translated_params'];
 
 
 const getParamType = (param) => {
@@ -257,6 +257,7 @@ export const processAuctions = async (auctions, folderChain, auctionSetName, own
       shipment_price: auction.shipment_priceBase,
       category: auction.categoryBase,
       amount: auction.amountBase,
+      translated_params: auction.translatedParams
     };
 
     // Create the auction
@@ -408,6 +409,15 @@ export const saveKeywordTranslation = async (keyword, translation, language, cat
     "translated": translation,
     "language": language,
     "category": category,
+  });
+  return response.data;
+}
+
+export const getFieldTranslationsDe = async (translateObject) => {
+  console.log(translateObject);
+  const response = await api.post('/api/translate/', {
+    "title": translateObject.name,
+    "description": translateObject.description,
   });
   return response.data;
 }

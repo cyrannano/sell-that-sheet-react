@@ -18,7 +18,7 @@ import {
   useDisclosure,
 
 } from '@chakra-ui/react';
-import { EditIcon } from '@chakra-ui/icons';
+import { EditIcon, ChatIcon } from '@chakra-ui/icons';
 import { ToastContainer, toast } from 'react-toastify';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -27,6 +27,7 @@ import { createCategoryOfferObject, previewTags, getCurrentUsersDescriptionTempl
 import AuctionList from 'components/auctionSetCreator/AuctionList';
 import DescriptionTemplateModal from 'components/auctionSetCreator/DescriptionTemplateModal';
 import KeywordTranslationModal from 'components/auctionSetCreator/KeywordTranslationModal';
+import FieldTranslationModal from 'components/auctionSetCreator/FieldTranslationModal';
 
 // API function to fetch category parameters
 const fetchCategoryParameters = async (categoryId) => {
@@ -60,6 +61,10 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isTranslationModalOpen, setIsTranslationModalOpen] = useState(false);
   const [keywords, setKeywords] = useState([]);
+  const { isOpen: isFieldTranslationModalOpen, onOpen: openFieldTranslationModal, onClose: closeFieldTranslationModal } = useDisclosure();
+  const [externalSetFieldValue, setExternalSetFieldValue] = useState(null);
+  const [currentFormikValues, setCurrentFormikValues] = useState({});
+  const [auctionTranslations, setAuctionTranslations] = useState({});
 
   
   useEffect(() => {
@@ -77,6 +82,12 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
 
     loadFormFields();
   }, [categoryId, offerObject]);
+
+  const handleSingleFieldTranslation = (field, text, fieldType) => {
+    if (fieldType === 'title') {
+      console.log('Translating field:', field, text);
+    }
+  };
 
   const buildValidationSchema = (fields) => {
     const schemaFields = {};
@@ -166,7 +177,7 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
   }
 
   const handleFormSubmit = (values, actions) => {
-    const auction = { customParams: {}, id: auctions.length + 1 };
+    const auction = { customParams: {}, id: auctions.length + 1, translatedParams: auctionTranslations };
 
     formFields.forEach((field) => {
       if (field.base) {
@@ -179,6 +190,8 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
         auction.customParams[field.id] = values[field.name];
       }
     });
+
+    console.log('Auction:', auction);
 
     if (selectedAuction !== null) {
       const updatedAuctions = auctions.map((a, idx) =>
@@ -193,6 +206,10 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
     setSelectedAuction(null);
     resetFileBrowserView();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleApplyFieldTranslations = (translations, targetLang) => {
+    auctionTranslations[targetLang] = translations;
   };
 
   const handleEditAuction = (auctionId) => {
@@ -297,6 +314,16 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
             >
               <EditIcon/>
             </Button>
+            <Button
+              size="xs"
+              ml={2}
+              onClick={(e) => {
+                e.preventDefault();
+                handleSingleFieldTranslation(field, values[field.name], "title");
+              }}
+            >
+              <ChatIcon/>
+            </Button>
 
           </InputRightAddon>
         </InputGroup>
@@ -345,7 +372,11 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
             enableReinitialize={true}
             onSubmit={handleFormSubmit}
           >
-            {({ isSubmitting, values, setFieldValue }) => (
+            {({ isSubmitting, values, setFieldValue }) => {
+              setExternalSetFieldValue(() => setFieldValue);
+              setCurrentFormikValues(values);
+
+              return (
               <Form>
                 {formFields.map((field) => (
                   <Field key={field.id} name={field.name}>
@@ -437,6 +468,14 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
                   </Field>
                 ))}
                 <Button
+                    variant="outline"
+                    colorScheme="orange"
+                    mr={3}
+                    onClick={openFieldTranslationModal}
+                  >
+                    Tłumacz wszystkie pola
+                  </Button>
+                <Button
                   type="submit"
                   colorScheme="blue"
                   isLoading={isSubmitting}
@@ -456,8 +495,18 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
                   keywords={keywords}
                   category={categoryId}
                 />
+                 <FieldTranslationModal
+                  isOpen={isFieldTranslationModalOpen}
+                  onClose={closeFieldTranslationModal}
+                  fields={formFields}
+                  currentValues={values}
+                  category={categoryId}
+                  onApplyTranslations={handleApplyFieldTranslations}
+                />
               </Form>
-            )}
+            )
+          }
+        }
           </Formik>
         )}
       </Box>

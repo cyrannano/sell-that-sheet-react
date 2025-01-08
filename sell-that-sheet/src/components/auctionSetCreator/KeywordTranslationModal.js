@@ -13,15 +13,17 @@ import {
   VStack,
   HStack,
   Spinner,
+  Checkbox,
 } from "@chakra-ui/react";
 
 import { AddIcon } from "@chakra-ui/icons";
 
-import { saveKeywordTranslation, getKeywordTranslationsDe } from "contexts/AuthContext";
+import { saveKeywordTranslation, getKeywordTranslations } from "contexts/AuthContext";
 
 const KeywordTranslationModal = ({ isOpen, onClose, keywords: initialKeywords, category }) => {
   const [keywords, setKeywords] = useState([]);
   const [translations, setTranslations] = useState({});
+  const [sharedStatus, setSharedStatus] = useState({});
   const [newKeyword, setNewKeyword] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -31,6 +33,7 @@ const KeywordTranslationModal = ({ isOpen, onClose, keywords: initialKeywords, c
       const lowercaseKeywords = initialKeywords.map((keyword) => keyword.toLowerCase());
       setKeywords(lowercaseKeywords);
       setTranslations({});
+      setSharedStatus({});
       if (lowercaseKeywords.length > 0) {
         fetchTranslations(lowercaseKeywords);
       }
@@ -41,12 +44,19 @@ const KeywordTranslationModal = ({ isOpen, onClose, keywords: initialKeywords, c
   const fetchTranslations = async (keywords) => {
     setLoading(true);
     try {
-      const existingTranslations = await getKeywordTranslationsDe(keywords, "de", category);
-      // Ensure all translations are in lowercase
-      const lowercaseTranslations = Object.fromEntries(
-        Object.entries(existingTranslations).map(([key, value]) => [key.toLowerCase(), value?.toLowerCase() || ""])
+      const existingTranslations = await getKeywordTranslations(keywords, "de", category);
+      const translations = Object.fromEntries(
+        Object.entries(existingTranslations).map(([key, value]) => [
+          key.toLowerCase(),
+          { translated: value.translated?.toLowerCase() || "", shared: value.shared || false },
+        ])
       );
-      setTranslations(lowercaseTranslations);
+      setTranslations(
+        Object.fromEntries(Object.entries(translations).map(([key, value]) => [key, value.translated]))
+      );
+      setSharedStatus(
+        Object.fromEntries(Object.entries(translations).map(([key, value]) => [key, value.shared]))
+      );
     } catch (error) {
       console.error("Failed to fetch translations:", error);
     } finally {
@@ -58,33 +68,40 @@ const KeywordTranslationModal = ({ isOpen, onClose, keywords: initialKeywords, c
     setTranslations((prev) => ({ ...prev, [keyword]: value.toLowerCase() }));
   };
 
+  const handleCheckboxChange = (keyword) => {
+    setSharedStatus((prev) => ({ ...prev, [keyword]: !prev[keyword] }));
+  };
+
   const handleAddKeyword = () => {
     const lowercaseKeyword = newKeyword.trim().toLowerCase();
     if (lowercaseKeyword && !keywords.includes(lowercaseKeyword)) {
       setKeywords((prev) => [...prev, lowercaseKeyword]);
       setTranslations((prev) => ({ ...prev, [lowercaseKeyword]: "" }));
+      setSharedStatus((prev) => ({ ...prev, [lowercaseKeyword]: false }));
       setNewKeyword("");
     }
   };
 
   const handleSave = async () => {
     const result = keywords
-      .filter(
-        (keyword) =>
-          translations[keyword] !== undefined &&
-          translations[keyword] !== "" &&
-          translations[keyword] !== null
-      )
+      .filter((keyword) => translations[keyword] && translations[keyword].trim())
       .reduce((acc, keyword) => {
-        acc[keyword] = translations[keyword] || "";
+        acc[keyword] = { translated: translations[keyword], shared: sharedStatus[keyword] || false };
         return acc;
       }, {});
 
-    // Save each keyword translation
     try {
-      for (const keyword in result) {
-        await saveKeywordTranslation(keyword, result[keyword], "de", category);
-      }
+      await Promise.all(
+        Object.keys(result).map((keyword) =>
+          saveKeywordTranslation(
+            keyword,
+            result[keyword].translated,
+            "de",
+            category,
+            result[keyword].shared
+          )
+        )
+      );
     } catch (error) {
       console.error("Failed to save translations:", error);
     } finally {
@@ -96,39 +113,51 @@ const KeywordTranslationModal = ({ isOpen, onClose, keywords: initialKeywords, c
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Keyword Translation</ModalHeader>
+        <ModalHeader>Tłumaczenie słówek</ModalHeader>
         <ModalBody>
           {loading ? (
             <Spinner size="xl" />
           ) : (
             <>
-              <Grid templateColumns="repeat(2, 1fr)" gap={4}>
-                <GridItem>
-                  <VStack align="stretch">
-                    {keywords.map((keyword) => (
-                      <Input
-                        key={keyword}
-                        value={keyword}
-                        isReadOnly
-                        variant="filled"
-                        placeholder="Słowo"
-                      />
-                    ))}
-                  </VStack>
-                </GridItem>
-                <GridItem>
-                  <VStack align="stretch">
-                    {keywords.map((keyword) => (
-                      <Input
-                        key={keyword}
-                        placeholder="Tłumaczenie"
-                        value={translations[keyword] || ""}
-                        onChange={(e) => handleInputChange(keyword, e.target.value)}
-                      />
-                    ))}
-                  </VStack>
-                </GridItem>
-              </Grid>
+            <Grid templateColumns="2fr 2fr 1fr" gap={4} alignItems="center">
+              <GridItem>
+                {keywords.map((keyword) => (
+                  <Input
+                    key={`${keyword}-word`}
+                    value={keyword}
+                    isReadOnly
+                    variant="filled"
+                    placeholder="Słowo"
+                    height="40px" // Ensure consistent height with checkbox
+                  />
+                ))}
+              </GridItem>
+              <GridItem>
+                {keywords.map((keyword) => (
+                  <Input
+                    key={`${keyword}-translation`}
+                    placeholder="Tłumaczenie"
+                    value={translations[keyword] || ""}
+                    onChange={(e) => handleInputChange(keyword, e.target.value)}
+                    height="40px" // Ensure consistent height with checkbox
+                  />
+                ))}
+              </GridItem>
+              <GridItem>
+                {keywords.map((keyword) => (
+                  <Checkbox
+                    key={`${keyword}-checkbox`}
+                    isChecked={sharedStatus[keyword]}
+                    onChange={() => handleCheckboxChange(keyword)}
+                    display="flex"
+                    alignItems="center"
+                    height="40px" // Align with input field heights
+                  >
+                    Shared
+                  </Checkbox>
+                ))}
+              </GridItem>
+            </Grid>
               <HStack mt={4}>
                 <Input
                   placeholder="Dodaj nowe słowo"

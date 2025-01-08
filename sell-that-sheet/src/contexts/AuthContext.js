@@ -5,8 +5,8 @@ const AuthContext = createContext();
 
 
 const api = axios.create({
-	baseURL: 'http://172.27.198.154:8000/' // For development,
-	// baseURL: 'http://172.27.70.154:8000/',
+	// baseURL: 'http://172.27.198.154:8000/' // For development,
+	baseURL: 'http://172.27.70.154:8000/',
 });
 
 api.interceptors.request.use((config) => {
@@ -394,24 +394,41 @@ export const getCurrentUsersDescriptionTemplates = async () => {
   return response.data;
 }
 
-export const getKeywordTranslationsDe = async (keywords, language, category) => {
-  const response = await api.post('/keyword-translation/search/', {
-    "keywords": keywords,
-    "language": language,
-    "category": category,
-  });
-  return response.data;
-}
+export const getKeywordTranslations = async ( keywords, language, category ) => {
+  try {
+    const response = await api.post('/keyword-translation/search/', {
+      "keywords": keywords,
+      "language": language,
+      "category": category,
+    });
 
-export const saveKeywordTranslation = async (keyword, translation, language, category) => {
-  const response = await api.post('/keywordtranslation/', {
-    "original": keyword,
-    "translated": translation,
-    "language": language,
-    "category": category,
-  });
-  return response.data;
-}
+    // The response data structure directly matches the expected frontend usage
+    return response.data; // No need for further processing
+  } catch (error) {
+    console.error("Failed to fetch keyword translations:", error);
+    throw error;
+  }
+};
+
+
+export const saveKeywordTranslation = async ( keyword, translation, language, category, shared ) => {
+  try {
+    const response = await api.post('/keywordtranslation/', {
+      original: keyword,
+      translated: translation,
+      language,
+      category,
+      shared_across_categories: shared,
+    });
+
+    return response.data; // Return the created translation object
+  } catch (error) {
+    console.error("Failed to save keyword translation:", error);
+    throw error;
+  }
+};
+
+
 
 export const getFieldTranslationsDe = async (translateObject) => {
   console.log(translateObject);

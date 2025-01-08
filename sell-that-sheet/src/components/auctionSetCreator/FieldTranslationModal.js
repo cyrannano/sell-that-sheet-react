@@ -19,6 +19,17 @@ import {
 import { toast } from 'react-toastify';
 import { getFieldTranslationsDe } from 'contexts/AuthContext';  // or a more general 'getTranslation' if you have it
 
+function capitalizeWords(text) {
+  return text.replace(/\b\w/g, char => char.toUpperCase()).replace(/\B\w/g, char => char.toLowerCase());
+}
+
+function removeOpeningAndTrailingBr(input) {
+  return input.replace(
+    /^(<br\s*\/?>|<p>\s*<br\s*\/?>\s*<\/p>)+|(<br\s*\/?>|<p>\s*<br\s*\/?>\s*<\/p>)+$/gi,
+    ''
+  );
+}
+
 const FieldTranslationModal = ({
   isOpen,
   onClose,
@@ -64,9 +75,9 @@ const FieldTranslationModal = ({
       const newTranslations = {};
       fields.forEach((f) => {
         if (f.name === 'name') {
-          newTranslations[f.name] = response.translation['title'];
+          newTranslations[f.name] = capitalizeWords(response.translation['title'] || '');
         } else {
-          newTranslations[f.name] = response.translation[f.name] || '';
+          newTranslations[f.name] = removeOpeningAndTrailingBr(response.translation[f.name] || '');
         }
       });
 

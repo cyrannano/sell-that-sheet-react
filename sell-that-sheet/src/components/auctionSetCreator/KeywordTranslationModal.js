@@ -153,7 +153,7 @@ const KeywordTranslationModal = ({ isOpen, onClose, keywords: initialKeywords, c
                     alignItems="center"
                     height="40px" // Align with input field heights
                   >
-                    Shared
+                    globalne
                   </Checkbox>
                 ))}
               </GridItem>

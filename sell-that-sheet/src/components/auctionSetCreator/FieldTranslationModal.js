@@ -20,7 +20,8 @@ import { toast } from 'react-toastify';
 import { getFieldTranslationsDe } from 'contexts/AuthContext';  // or a more general 'getTranslation' if you have it
 
 function capitalizeWords(text) {
-  return text.replace(/\b\w/g, char => char.toUpperCase()).replace(/\B\w/g, char => char.toLowerCase());
+  return text.replace(/\b\p{L}/gu, char => char.toLocaleUpperCase('de-DE'))
+             .replace(/\B\p{L}/gu, char => char.toLocaleLowerCase('de-DE'));
 }
 
 function removeOpeningAndTrailingBr(input) {

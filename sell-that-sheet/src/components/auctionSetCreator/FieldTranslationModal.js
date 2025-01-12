@@ -15,13 +15,18 @@ import {
   Td,
   Th,
   Textarea,
+  InputGroup,
+  InputRightAddon,
+  Input,
+  InputRightElement,
 } from '@chakra-ui/react';
 import { toast } from 'react-toastify';
 import { getFieldTranslationsDe } from 'contexts/AuthContext';  // or a more general 'getTranslation' if you have it
 
 function capitalizeWords(text) {
-  return text.replace(/\b\p{L}/gu, char => char.toLocaleUpperCase('de-DE'))
-             .replace(/\B\p{L}/gu, char => char.toLocaleLowerCase('de-DE'));
+  return text.replace(/\b(\p{L})(\p{L}*)/gu, (_, firstChar, restChars) => {
+      return firstChar.toLocaleUpperCase('de-DE') + restChars.toLocaleLowerCase('de-DE');
+  });
 }
 
 function removeOpeningAndTrailingBr(input) {
@@ -147,12 +152,18 @@ const FieldTranslationModal = ({
 
                     {/* Editable translation field */}
                     <Td width="40%">
+                    <InputGroup>
                       <Textarea
+                        // as={Textarea}
                         rows={4}
                         value={translations[f.name] || ''}
                         onChange={(e) => handleTranslationChange(f.name, e.target.value)}
                         placeholder="Tłumaczenie..."
                       />
+                      <InputRightElement>
+                          {translations[f.name] ? translations[f.name].length : 0}
+                      </InputRightElement>
+                    </InputGroup>
                     </Td>
                   </Tr>
                 ))}

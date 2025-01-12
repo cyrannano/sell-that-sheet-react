@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useAuth, getAvailableOwners, browseDirectory, getCategoryParameters, createPhotoSet, createCategoryOfferObject, processAuctions, downloadSheet, pushAuctionSetToBaselinker, moveAuctionSetPhotosToDoneDirectory, performOCR } from 'contexts/AuthContext';
+import { useAuth, rotateImage, getAvailableOwners, browseDirectory, getCategoryParameters, createPhotoSet, createCategoryOfferObject, processAuctions, downloadSheet, pushAuctionSetToBaselinker, moveAuctionSetPhotosToDoneDirectory, performOCR } from 'contexts/AuthContext';
 import {
   Box,
   SimpleGrid,
@@ -25,9 +25,10 @@ import { parse } from 'stylis';
 import { ToastContainer, toast } from 'react-toastify';
 import { Spinner } from '@chakra-ui/react'
 import 'react-toastify/dist/ReactToastify.css';
-import Lightbox from 'react-image-lightbox';
-import 'react-image-lightbox/style.css';
+import Lightbox from 'react-image-lightbox-rotation';
+import 'react-image-lightbox-rotation/style.css';
 import 'react-toastify/dist/ReactToastify.css';
+import { IconRotateClockwise2, IconRotate2 } from '@tabler/icons-react';
 
 
 import {
@@ -309,6 +310,7 @@ const AuctionSetCreator = () => {
     color: 'white',
     fontSize: '16px',
     cursor: 'pointer',
+    margin: '0 5px',
   };
 
   const handleOcrButtonClick = async () => {
@@ -332,7 +334,10 @@ const AuctionSetCreator = () => {
     }
   };
   
-  
+  const handleRotateImage = (degrees) => {
+    const imageUrl = fileBrowserImages[photoIndex];
+    // rotateImage(imageUrl, -90);
+  };
 
   // === OCR FUNCTIONALITY ===
 
@@ -427,6 +432,7 @@ const AuctionSetCreator = () => {
     </Card>
     {galleryOpen && (
         <Lightbox
+          onImageRotate={handleRotateImage}
           mainSrc={fileBrowserImages[photoIndex]}
           nextSrc={
             fileBrowserImages[(photoIndex + 1) % fileBrowserImages.length]

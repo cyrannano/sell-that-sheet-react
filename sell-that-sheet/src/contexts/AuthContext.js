@@ -428,13 +428,19 @@ export const saveKeywordTranslation = async ( keyword, translation, language, ca
   }
 };
 
-
-
 export const getFieldTranslationsDe = async (translateObject) => {
   console.log(translateObject);
   const response = await api.post('/api/translate/', {
     "title": translateObject.name,
     "description": translateObject.description,
+  });
+  return response.data;
+}
+
+export const rotateImage = async (imagePath, degrees) => {
+  const response = await api.post(`/api/image-rotate/`, {
+    image_path: imagePath,
+    angle: degrees
   });
   return response.data;
 }

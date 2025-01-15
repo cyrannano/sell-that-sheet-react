@@ -73,6 +73,7 @@ const FieldTranslationModal = ({
             translateObject[f.name] = currentValues[f.name];
           }
         });
+      translateObject['category'] = category;
 
       // Call your translation API
       const response = await getFieldTranslationsDe(translateObject);
@@ -160,7 +161,7 @@ const FieldTranslationModal = ({
                         onChange={(e) => handleTranslationChange(f.name, e.target.value)}
                         placeholder="Tłumaczenie..."
                       />
-                      <InputRightElement>
+                      <InputRightElement position={'absolute'} right={'-40px'}>
                           {translations[f.name] ? translations[f.name].length : 0}
                       </InputRightElement>
                     </InputGroup>

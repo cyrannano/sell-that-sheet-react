@@ -433,6 +433,7 @@ export const getFieldTranslationsDe = async (translateObject) => {
   const response = await api.post('/api/translate/', {
     "title": translateObject.name,
     "description": translateObject.description,
+    "category": translateObject.category,
   });
   return response.data;
 }

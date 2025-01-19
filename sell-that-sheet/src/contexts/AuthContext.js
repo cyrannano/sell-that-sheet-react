@@ -446,4 +446,14 @@ export const rotateImage = async (imagePath, degrees) => {
   return response.data;
 }
 
+export const getAllParameters = async () => {
+  const response = await api.get('/distinct-parameters/');
+  return response.data;
+}
+
+export const getAllAuctionParameters = async () => {
+  const response = await api.get('/distinct-auction-parameters/');
+  return response.data;
+}
+
 export { api };

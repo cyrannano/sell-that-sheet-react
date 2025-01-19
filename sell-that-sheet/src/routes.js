@@ -7,11 +7,13 @@ import {
   MdHome,
   MdLock,
   MdOutlineShoppingCart,
+  MdBlurLinear
 } from "react-icons/md";
 
 // Admin Imports
 import MainDashboard from "views/admin/default";
 import NFTMarketplace from "views/admin/marketplace";
+import ParametersView from "views/admin/parameters";
 import Profile from "views/admin/profile";
 import DataTables from "views/admin/dataTables";
 import RTL from "views/admin/rtl";
@@ -62,6 +64,13 @@ const routes = [
     path: "/sign-in",
     icon: <Icon as={MdLock} width='20px' height='20px' color='inherit' />,
     component: SignInCentered,
+  },
+  {
+    name: "Parametry",
+    layout: "/admin",
+    path: "/parameters",
+    icon: <Icon as={MdBlurLinear} width='20px' height='20px' color='inherit' />,
+    component: ParametersView,
   },
   // {
   //   name: "RTL Admin",

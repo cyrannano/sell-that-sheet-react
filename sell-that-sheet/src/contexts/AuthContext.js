@@ -173,13 +173,17 @@ export const addPhoto = async (photo) => {
 export const createPhotoSet = async (photos, directory, thumbnail) => {
   if(!photos.includes(thumbnail)) {
     photos = [thumbnail, ...photos];
+
   }
 
+  
   const addedPhotos = await addPhotos(photos);
+  const thumbnailId = addedPhotos.find((photo) => photo.name === thumbnail).id;
+  console.log(thumbnail, addedPhotos, thumbnailId);
   const addedPhotosIds = addedPhotos.map((photo) => photo.id);
   const photoset = {
     directory_location: directory,
-    thumbnail: addedPhotosIds[0],
+    thumbnail: thumbnailId,
     photos: addedPhotosIds,
   };
   

@@ -12,6 +12,7 @@ import {
   Select,
   InputGroup,
   Input,
+  Flex,
 } from '@chakra-ui/react';
 import { Button, ButtonGroup, IconButton } from '@chakra-ui/react'
 import { FullFileBrowser, defineFileAction, ChonkyIconName } from 'chonky';
@@ -41,6 +42,7 @@ import {
   ModalCloseButton,
   Textarea,
 } from '@chakra-ui/react';
+import SelectedImagesBrowser from './SelectedImagesBrowser';
 
 const AuctionSetCreator = () => {
   const [folderChain, setFolderChain] = useState([{ id: 'root', name: 'Zdjęcia', fc: true }]);
@@ -65,15 +67,17 @@ const AuctionSetCreator = () => {
   const [ocrResult, setOcrResult] = useState('');
   const [showOcrResult, setShowOcrResult] = useState(false);
   const [usedPhotos, setUsedPhotos] = useState([]);
-  const [showIgnoredFiles, setShowIgnoredFiles] = useState(false);
+  const [showSelectedFiles, setShowSelectedFiles] = useState(false);
   const [owners, setOwners] = useState([]);
   const [selectedOwner, setSelectedOwner] = useState(null);
+  const [thumbnailImageName, setThumbnailImageName] = useState(null);
+  const [imageList, setImageList] = useState([]);
 
   const fetchFiles = async () => {
     let files = await browseDirectory(folderChain);
-    // ignore images that was already used
-    if(!showIgnoredFiles) {
-      files = files.filter((file) => !usedPhotos.includes(file.name));
+    // ignore images that were already used
+    if(showSelectedFiles) {
+      files = files.filter((file) => imageList.map((e) => e.name).includes(file.name));
     }
     setFiles(files);
   };
@@ -96,7 +100,7 @@ const AuctionSetCreator = () => {
   useEffect(() => {
     setCreatingProduct(false);
     fetchFiles();
-  }, [folderChain, showIgnoredFiles]);
+  }, [folderChain, showSelectedFiles, imageList]);
 
   // when files are updated update fileBrowserImages
   useEffect(() => {
@@ -136,17 +140,31 @@ const AuctionSetCreator = () => {
   // }, []);
 
   const handleSave = () => {
+    if(thumbnailImageName === null) {
+      toast.error('Nie wybrano miniatury');
+      return;
+    }
     setLoading(true);
-    processAuctions(auctions, folderChain, auctionSetName, selectedOwner).then((auctionSet) => {
-      // console.log('Auction Set Created:', auctionSet);
+    createPhotoSet(imageList.map((image) => image.imageId), folderChain.filter(e => e.id !== 'root').map((e) => e.name).join('/'), thumbnailImageName).then((response) => {
+      toast.success('Pomyślnie zapisano zdjęcia');
+
+      auctions[0].photoset = response.id;
+
+      processAuctions(auctions, folderChain, auctionSetName, selectedOwner).then((auctionSet) => {
+        // console.log('Auction Set Created:', auctionSet);
+        setLoading(false);
+        toast.success('Pomyślnie zapisano pakiet');
+        return auctionSet.id;
+      })
+      .catch((error) => {
+        setLoading(false);
+        toast.error(error.response.data.detail? error.response.data.detail : 'Wystąpił błąd podczas zapisywania pakietu');
+        console.error('Error processing auctions:', error);
+      });
+    }).catch((error) => {
+      console.error('Error saving photos:', error);
+      toast.error('Wystąpił błąd podczas zapisywania zdjęć');
       setLoading(false);
-      toast.success('Pomyślnie zapisano pakiet');
-      return auctionSet.id;
-    })
-    .catch((error) => {
-      setLoading(false);
-      toast.error(error.response.data.detail? error.response.data.detail : 'Wystąpił błąd podczas zapisywania pakietu');
-      console.error('Error processing auctions:', error);
     });
   };
 
@@ -154,45 +172,63 @@ const AuctionSetCreator = () => {
     // push auctions to baselinker
     // save auctionSet
     // during push add spinner
+    if(thumbnailImageName === null) {
+      toast.error('Nie wybrano miniatury');
+      return;
+    }
     setLoading(true);
-    const auctionSetId = processAuctions(auctions, folderChain, auctionSetName, selectedOwner).then((auctionSet) => {
+    createPhotoSet(imageList.map((image) => image.imageId), folderChain.filter(e => e.id !== 'root').map((e) => e.name).join('/'), thumbnailImageName).then((response) => {
+      toast.success('Pomyślnie zapisano zdjęcia');
 
-      // console.log('Auction Set ID:', auctionSet.id);
-      // push to baselinker
-      // after push, toast success or error
-      
+      // apply auctions[0].photoset = response.id; to state
+      let auctionsCopy = [...auctions];
+      auctionsCopy[0].photosetBase = response.id;
+      const auctionSetId = processAuctions(auctionsCopy, folderChain, auctionSetName, selectedOwner).then((auctionSet) => {
 
-      pushAuctionSetToBaselinker(auctionSet.id).then((response) => {
-        // console.log('Pushed to Baselinker:', response);
-        toast.success('Pomyślnie wystawiono produkty na Baselinkerze. Przenoszenie plików.');
-        moveAuctionSetPhotosToDoneDirectory(auctionSet.id).then((response) => {
-          // console.log('Moved photos to done:', response);
-          toast.success('Pomyślnie przeniesiono zdjęcia do folderu Wystawione');
-        }).catch((error) => {
-          console.error('Error moving photos to Wystawione:', error);
-          toast.error('Wystąpił błąd podczas przenoszenia zdjęć do folderu Wystawione');
-        });
-
-
-        setLoading(false);
-
-        // Reset all state
-        setAuctions([]);
-        setAuctionSetName(null);
-        setUsedCategories([null]);
+        // console.log('Auction Set ID:', auctionSet.id);
+        // push to baselinker
+        // after push, toast success or error
         
-      })
-      .catch((error) => {
-        console.error('Error pushing to Baselinker:', error);
-        toast.error('Wystąpił błąd podczas wystawiania produktów na Baselinkerze');
-        setLoading(false);
-      });
+
+        pushAuctionSetToBaselinker(auctionSet.id).then((response) => {
+          // console.log('Pushed to Baselinker:', response);
+          toast.success('Pomyślnie wystawiono produkty na Baselinkerze. Przenoszenie plików.');
+          moveAuctionSetPhotosToDoneDirectory(auctionSet.id).then((response) => {
+            // console.log('Moved photos to done:', response);
+            toast.success('Pomyślnie przeniesiono zdjęcia do folderu Wystawione');
+            fetchFiles();
+
+          }).catch((error) => {
+            console.error('Error moving photos to Wystawione:', error);
+            toast.error('Wystąpił błąd podczas przenoszenia zdjęć do folderu Wystawione');
+          });
+
+
+          setLoading(false);
+
+          // Reset all state
+          setAuctions([]);
+          setAuctionSetName(null);
+          setUsedCategories([null]);
+          resetSelectedImages();
+        })
+        .catch((error) => {
+          console.error('Error pushing to Baselinker:', error);
+          toast.error('Wystąpił błąd podczas wystawiania produktów na Baselinkerze');
+          setLoading(false);
+        });
     }).catch((error) => {
       console.error('Error processing auctions:', error);
 
       toast.error('Wystąpił błąd podczas przetwarzania aukcji:' + error.response.data.detail ? error.response.data.detail : '');
       setLoading(false);
     });
+  }).catch((error) => {
+    console.error('Error saving photos:', error);
+    toast.error('Wystąpił błąd podczas zapisywania zdjęć');
+    setLoading(false);
+
+  });
   };
 
   const handleDownload = () => {
@@ -224,8 +260,8 @@ const AuctionSetCreator = () => {
 
     setNewProductName(productName);
     setCurrentCategory(selectedCategory.id);
-    setUsedPhotos([...usedPhotos, ...photos.map(e => e.name)]);
-    const photoset = await createPhotoSet(photos.map((e) => e.name), folderChain.filter(e => e.id !== 'root').map((e) => e.name).join('/'), photos[0].name);
+    // setUsedPhotos([...usedPhotos, ...photos.map(e => e.name)]);
+    // const photoset = await createPhotoSet(photos.map((e) => e.name), folderChain.filter(e => e.id !== 'root').map((e) => e.name).join('/'), photos[0].name);
     
     // console.log('photoset', photoset);
     fetchCategoryParameters(selectedCategory.id).then((data) => {
@@ -233,9 +269,9 @@ const AuctionSetCreator = () => {
       _data.categoryId = selectedCategory.id;
       _data.map((param) => {
         switch(param.name) {
-          case 'photoset':
-            param.value = photoset.id;
-            break;
+          // case 'photoset':
+          //   param.value = photoset.id;
+          //   break;
           case 'categoryId':
             param.value = selectedCategory.id;
             break;
@@ -249,7 +285,7 @@ const AuctionSetCreator = () => {
       setCategoryParameters(_data);
       setShowCreateProductModal(false);
       setCreatingProduct(true);
-      setFiles(photos);
+      // setFiles(photos);
     });
   };
 
@@ -292,6 +328,9 @@ const AuctionSetCreator = () => {
         setPhotos(action.state.selectedFiles);
         openCreateProductModal();
         break;
+      case 'add_image_to_product':
+        addImagesToProduct(action.state.selectedFilesForAction);
+        break;
       default:
         break;
     }
@@ -299,7 +338,7 @@ const AuctionSetCreator = () => {
 
   const resetFileBrowserView = () => {
     setCreatingProduct(false);
-     fetchFiles(folderChain);
+    fetchFiles(folderChain);
   };
 
   // === OCR FUNCTIONALITY ===
@@ -341,6 +380,32 @@ const AuctionSetCreator = () => {
 
   // === OCR FUNCTIONALITY ===
 
+  const addImagesToProduct = (images) => {
+    let newImages = images.map((image) => ({
+      name: image.name,
+      thumbnailUrl: image.thumbnailUrl,
+      imageId: image.id,
+    }));
+    // remove already added images
+    newImages = newImages.filter((image) => !imageList.map((e) => e.imageId).includes(image.imageId));
+    setImageList([...imageList, ...newImages]);
+  }
+
+  const resetSelectedImages = () => {
+    setImageList([]);
+    setThumbnailImageName(null);
+  }
+
+  const handleProductImageDelete = (imageId) => {
+    if (imageId == thumbnailImageName) {
+      setThumbnailImageName(null);
+    }
+  }
+
+  const handleThumbnailChange = (thumbnailId) => {
+    setThumbnailImageName(thumbnailId);
+  }
+
   return (
     <>
     {/* if loading add overlay with spinner and blur everything below */}
@@ -359,28 +424,47 @@ const AuctionSetCreator = () => {
       />
       <SimpleGrid spacing={5} minHeight="800px">
         <Box height={"500px"}>
-          {creatingProduct ? <Button colorScheme={'red'} onClick={() => {resetFileBrowserView();}}>Anuluj</Button> : <></>}
-          <Button colorScheme={'blue'} onClick={() => {setShowIgnoredFiles(!showIgnoredFiles);}}>{showIgnoredFiles ? "Ukryj" : "Pokaż"} wykorzystane zdjęcia</Button>
-          <FullFileBrowser
-              overflow="hidden"
-              files={files}
-              folderChain={folderChain}
-              onFileAction={handleFileAction}
-              fileActions={[
-                defineFileAction({
-                  id: 'create_auction_product',
-                  hotkeys: ['ctrl+k'],
-                  button: {
-                    name: 'Utwórz produkt',
-                    toolbar: true,
-                    contextMenu: true,
-                    icon: ChonkyIconName.database,
-                    color: 'primary',
-                  },
-                  requiresSelection: true,
-                }),
-              ]}
-            />
+          {/* {creatingProduct ? <Button colorScheme={'red'} onClick={() => {resetFileBrowserView();}}>Anuluj</Button> : <></>} */}
+          <Button colorScheme={'blue'} onClick={() => {openCreateProductModal()}}>Utwórz Aukcję</Button>
+          <Button colorScheme={'white'} onClick={() => {setShowSelectedFiles(!showSelectedFiles);}}>Pokaż {showSelectedFiles ? "wszystkie" : "wybrane"} zdjęcia</Button>
+
+          <Box height="100%" width={"100%"} display={"grid"} gridGap={2} gridAutoFlow={"column dense"}>
+            <FullFileBrowser
+                overflow="hidden"
+                files={files}
+                folderChain={folderChain}
+                onFileAction={handleFileAction}
+                fileActions={[
+                  // defineFileAction({
+                  //   id: 'create_auction_product',
+                  //   hotkeys: ['ctrl+k'],
+                  //   button: {
+                  //     name: 'Utwórz produkt',
+                  //     toolbar: true,
+                  //     contextMenu: true,
+                  //     icon: ChonkyIconName.database,
+                  //     color: 'primary',
+                  //   },
+                  //   requiresSelection: true,
+                  // }),
+                  defineFileAction({
+                    id: 'add_image_to_product',
+                    hotkeys: ['ctrl+i'],
+                    button: {
+                      name: 'Dodaj zdjęcie',
+                      toolbar: true,
+                      contextMenu: true,
+                      icon: ChonkyIconName.folderChainSeparator,
+                      color: 'primary',
+                    },
+                  }),
+                ]}
+              />
+              {imageList.length > 0 ?
+                <SelectedImagesBrowser height={"100%"} width={"100%"} imageList={imageList} onThumbnailChange={handleThumbnailChange} setImageList={setImageList} onProductImageDelete={handleProductImageDelete}/>
+                : <></>
+              }
+          </Box>
         </Box>
         <Box>
         <Tabs overflowX="hidden" onChange={(idx) => {

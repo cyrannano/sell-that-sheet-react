@@ -426,7 +426,7 @@ const AuctionSetCreator = () => {
         <Box height={"500px"}>
           {/* {creatingProduct ? <Button colorScheme={'red'} onClick={() => {resetFileBrowserView();}}>Anuluj</Button> : <></>} */}
           <Button colorScheme={'blue'} onClick={() => {openCreateProductModal()}}>Utwórz Aukcję</Button>
-          <Button colorScheme={'white'} onClick={() => {setShowSelectedFiles(!showSelectedFiles);}}>Pokaż {showSelectedFiles ? "wszystkie" : "wybrane"} zdjęcia</Button>
+          <Button variant={'ghost'} onClick={() => {setShowSelectedFiles(!showSelectedFiles);}}>Pokaż {showSelectedFiles ? "wszystkie" : "wybrane"} zdjęcia</Button>
 
           <Box height="100%" width={"100%"} display={"grid"} gridGap={2} gridAutoFlow={"column dense"}>
             <FullFileBrowser

@@ -460,4 +460,16 @@ export const getAllAuctionParameters = async () => {
   return response.data;
 }
 
+export async function saveTranslations(translations) {
+  // Adjust the endpoint URL to match your Django route
+  const response = await api.post('/api/translations/save/', { translations });
+  return response.data;
+}
+
+export async function fetchTranslations() {
+  // Adjust the endpoint URL to match your Django route
+  const response = await api.get('/api/translations/');
+  return response.data;
+}
+
 export { api };

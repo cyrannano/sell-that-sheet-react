@@ -5,8 +5,8 @@ const AuthContext = createContext();
 
 
 const api = axios.create({
-	// baseURL: 'http://172.27.198.154:8000/' // For development,
-	baseURL: 'http://172.27.70.154:8000/',
+	baseURL: 'http://172.27.198.154:8000/' // For development,
+	// baseURL: 'http://172.27.70.154:8000/',
 });
 
 api.interceptors.request.use((config) => {
@@ -460,14 +460,37 @@ export const getAllAuctionParameters = async () => {
   return response.data;
 }
 
-export async function saveTranslations(translations) {
-  // Adjust the endpoint URL to match your Django route
-  const response = await api.post('/api/translations/save/', { translations });
+export async function saveTranslations(paramTranslations, auctionParamTranslations) {
+  // Convert paramTranslations { paramId: translation } into an array
+  const paramTransArray = Object.entries(paramTranslations).map(([paramId, translation]) => ({
+    param_id: paramId,
+    translation
+  }));
+
+  // Convert auctionParamTranslations { paramId: { valueName: translation } } into an array
+  const auctionParamTransArray = [];
+  for (const [paramId, valueObj] of Object.entries(auctionParamTranslations)) {
+    for (const [valueName, translation] of Object.entries(valueObj)) {
+      auctionParamTransArray.push({
+        param_id: paramId,
+        value_name: valueName,
+        translation
+      });
+    }
+  }
+
+  const data = {
+    param_translations: paramTransArray,
+    auction_param_translations: auctionParamTransArray
+  };
+
+  // POST this structured data
+  const response = await api.post("/api/translations/save/", data);
   return response.data;
 }
 
+
 export async function fetchTranslations() {
-  // Adjust the endpoint URL to match your Django route
   const response = await api.get('/api/translations/');
   return response.data;
 }

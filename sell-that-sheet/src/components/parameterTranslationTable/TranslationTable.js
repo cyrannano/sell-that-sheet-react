@@ -29,29 +29,47 @@ const TranslationTable = () => {
   const [translations, setTranslations] = useState({});
   const [expanded, setExpanded] = useState({});
   const [showUntranslatedOnly, setShowUntranslatedOnly] = useState(false);
+  const [paramTranslations, setParamTranslations] = useState({});
+  const [auctionParamTranslations, setAuctionParamTranslations] = useState({});
 
   useEffect(() => {
-    // Load parameters, auction params, and existing translations
     const fetchData = async () => {
       try {
         const [params, auctionParams] = await Promise.all([
           getAllParameters(),
           getAllAuctionParameters(),
         ]);
-
-        // Load existing translations
-        const loadedTranslations = await fetchTranslations();
-
+  
+        const loadedTranslations = await fetchTranslations(); 
+        // loadedTranslations looks like the JSON shown above
+  
+        // Build paramTranslations
+        const paramMap = {};
+        loadedTranslations.param_translations.forEach(item => {
+          paramMap[item.param_id] = item.translation;
+        });
+        setParamTranslations(paramMap);
+  
+        // Build auctionParamTranslations
+        const auctionMap = {};
+        loadedTranslations.auction_param_translations.forEach(item => {
+          if (!auctionMap[item.param_id]) {
+            auctionMap[item.param_id] = {};
+          }
+          auctionMap[item.param_id][item.value_name] = item.translation;
+        });
+        setAuctionParamTranslations(auctionMap);
+  
         setParameters(params);
         setAuctionParameters(auctionParams);
-        setTranslations(loadedTranslations); 
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
-
+  
     fetchData();
   }, []);
+  
 
   // Expand/collapse a parameter row
   const handleExpand = (paramId) => {
@@ -66,19 +84,39 @@ const TranslationTable = () => {
     }));
   };
 
+  const handleParamTranslationChange = (paramId, newValue) => {
+    setParamTranslations(prev => ({
+      ...prev,
+      [paramId]: newValue,
+    }));
+  };
+  
+  const handleAuctionParamTranslationChange = (paramId, valueName, newValue) => {
+    setAuctionParamTranslations(prev => ({
+      ...prev,
+      [paramId]: {
+        ...(prev[paramId] || {}),
+        [valueName]: newValue
+      }
+    }));
+  };
+
   // Check if a param is fully translated
   const isParamFullyTranslated = (paramId) => {
-    const paramKey = `param-${paramId}`;
-    if (!translations[paramKey] || !translations[paramKey].trim()) {
+    // 1) Check if param itself is translated
+    if (!paramTranslations[paramId] || !paramTranslations[paramId].trim()) {
       return false;
     }
+  
+    // 2) Check sub-values
     const values = auctionParameters.filter((ap) => ap.parameter === paramId);
-    for (let val of values) {
-      const subKey = `param-${paramId}-value-${val.value_name}`;
-      if (!translations[subKey] || !translations[subKey].trim()) {
+    for (const val of values) {
+      const existing = auctionParamTranslations[paramId]?.[val.value_name];
+      if (!existing || !existing.trim()) {
         return false;
       }
     }
+  
     return true;
   };
 
@@ -103,12 +141,14 @@ const TranslationTable = () => {
 
   // Save updated translations to the API
   const handleSaveTranslations = async () => {
-    saveTranslations(translations).then(() => {
-      toast.success("Tłumaczenia zostały zapisane!");
-    }).catch((error) => {
-      console.error("Error saving translations:", error);
-      toast.error("Wystąpił błąd podczas zapisywania tłumaczeń. Spróbuj ponownie.");
-    });
+    saveTranslations(paramTranslations, auctionParamTranslations)
+      .then(() => {
+        toast.success("Tłumaczenia zostały zapisane!");
+      })
+      .catch((error) => {
+        console.error("Error saving translations:", error);
+        toast.error("Wystąpił błąd podczas zapisywania tłumaczeń. Spróbuj ponownie.");
+      });
   };
 
   // Render sub-values for a given parameter
@@ -134,9 +174,16 @@ const TranslationTable = () => {
                     ? "yellow.100"
                     : "white"
                 }
-                value={translations[uniqueKey] || ""}
-                onChange={(e) => handleTranslationChange(uniqueKey, e.target.value)}
-                placeholder={`Tłumaczenie "${val.value_name}"`}
+                value={
+    auctionParamTranslations[paramId] &&
+    auctionParamTranslations[paramId][val.value_name]
+      ? auctionParamTranslations[paramId][val.value_name]
+      : ""
+  }
+  onChange={(e) =>
+    handleAuctionParamTranslationChange(paramId, val.value_name, e.target.value)
+  }
+  placeholder={`Tłumaczenie "${val.value_name}"`}
               />
             </Box>
           );
@@ -210,8 +257,8 @@ const TranslationTable = () => {
                           ? "yellow.100"
                           : "white"
                       }
-                      value={translations[key] || ""}
-                      onChange={(e) => handleTranslationChange(key, e.target.value)}
+                      value={paramTranslations[param.id] || ""}
+                      onChange={(e) => handleParamTranslationChange(param.id, e.target.value)}
                       placeholder={`Tłumaczenie "${param.name}"`}
                     />
                   </Td>

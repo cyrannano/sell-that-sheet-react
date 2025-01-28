@@ -5,8 +5,8 @@ const AuthContext = createContext();
 
 
 const api = axios.create({
-	baseURL: 'http://172.27.198.154:8000/' // For development,
-	// baseURL: 'http://172.27.70.154:8000/',
+	// baseURL: 'http://172.27.198.154:8000/' // For development,
+	baseURL: 'http://172.27.70.154:8000/',
 });
 
 api.interceptors.request.use((config) => {

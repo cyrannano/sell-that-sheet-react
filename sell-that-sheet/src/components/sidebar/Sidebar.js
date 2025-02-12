@@ -25,13 +25,7 @@ import PropTypes from "prop-types";
 
 // Assets
 
-function Sidebar({ routes }) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-
-  const toggleSidebar = () => {
-    setIsCollapsed((prev) => !prev);
-  };
-
+function Sidebar({ routes, isCollapsed, toggleSidebar }) {
   let variantChange = "0.2s linear";
   let shadow = useColorModeValue(
     "14px 17px 40px 4px rgba(112, 144, 176, 0.08)",

@@ -7,13 +7,14 @@ import { Flex, useColorModeValue } from "@chakra-ui/react";
 import { HorizonLogo } from "components/icons/Icons";
 import { HSeparator } from "components/separator/Separator";
 
-export function SidebarBrand() {
+export function SidebarBrand(props) {
   //   Chakra color mode
   let logoColor = useColorModeValue("navy.700", "white");
+  const { isCollapsed } = props;
 
   return (
     <Flex align='center' direction='column'>
-      <HorizonLogo h='26px' w='175px' my='32px' color={logoColor} />
+      <inline style={{fontSize: (isCollapsed) ? '100%' : '42px'}}><strong>MPD</strong>Parts</inline>
       <HSeparator mb='20px' />
     </Flex>
   );

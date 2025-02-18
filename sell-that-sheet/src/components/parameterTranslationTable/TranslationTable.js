@@ -154,13 +154,14 @@ const TranslationTable = () => {
   // Render sub-values for a given parameter
   const renderParameterValues = (paramId) => {
     const values = auctionParameters.filter((ap) => ap.parameter === paramId);
-
+  
     return (
       <VStack spacing={2} align="start" mt={2}>
         {values.map((val) => {
           const uniqueKey = `param-${paramId}-value-${val.value_name}`;
-          const isEmpty = !translations[uniqueKey] || !translations[uniqueKey].trim();
-
+          const valueExists =
+            auctionParamTranslations[paramId]?.[val.value_name]?.trim();
+  
           return (
             <Box key={uniqueKey} w="100%">
               <Text fontSize="sm" mb={1}>
@@ -168,22 +169,16 @@ const TranslationTable = () => {
               </Text>
               <Input
                 size="sm"
-                // Highlight if showUntranslatedOnly is active AND this field is empty
                 bg={
-                  showUntranslatedOnly && isEmpty
+                  showUntranslatedOnly && !valueExists
                     ? "yellow.100"
                     : "white"
                 }
-                value={
-    auctionParamTranslations[paramId] &&
-    auctionParamTranslations[paramId][val.value_name]
-      ? auctionParamTranslations[paramId][val.value_name]
-      : ""
-  }
-  onChange={(e) =>
-    handleAuctionParamTranslationChange(paramId, val.value_name, e.target.value)
-  }
-  placeholder={`Tłumaczenie "${val.value_name}"`}
+                value={valueExists || ""}
+                onChange={(e) =>
+                  handleAuctionParamTranslationChange(paramId, val.value_name, e.target.value)
+                }
+                placeholder={`Tłumaczenie "${val.value_name}"`}
               />
             </Box>
           );
@@ -191,7 +186,7 @@ const TranslationTable = () => {
       </VStack>
     );
   };
-
+  
   return (
     <Box p={6} maxW="800px" mx="auto">
       {/* Header + Control Buttons */}
@@ -249,18 +244,19 @@ const TranslationTable = () => {
                     </Box>
                   </Td>
                   <Td>
-                    <Input
-                      size="sm"
-                      // Highlight param input as well if empty
-                      bg={
-                        showUntranslatedOnly && paramIsEmpty
-                          ? "yellow.100"
-                          : "white"
-                      }
-                      value={paramTranslations[param.id] || ""}
-                      onChange={(e) => handleParamTranslationChange(param.id, e.target.value)}
-                      placeholder={`Tłumaczenie "${param.name}"`}
-                    />
+                  <Input
+  size="sm"
+  bg={
+    showUntranslatedOnly &&
+    (!paramTranslations[param.id] || !paramTranslations[param.id].trim())
+      ? "yellow.100"
+      : "white"
+  }
+  value={paramTranslations[param.id] || ""}
+  onChange={(e) => handleParamTranslationChange(param.id, e.target.value)}
+  placeholder={`Tłumaczenie "${param.name}"`}
+/>
+
                   </Td>
                   <Td />
                 </Tr>

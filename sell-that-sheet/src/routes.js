@@ -7,7 +7,8 @@ import {
   MdHome,
   MdLock,
   MdOutlineShoppingCart,
-  MdBlurLinear
+  MdBlurLinear,
+  MdGTranslate
 } from "react-icons/md";
 
 // Admin Imports
@@ -20,6 +21,7 @@ import RTL from "views/admin/rtl";
 
 // Auth Imports
 import SignInCentered from "views/auth/signIn";
+import TranslationManagerView from "views/admin/translationManager";
 
 const routes = [
   {
@@ -71,6 +73,13 @@ const routes = [
     path: "/parameters",
     icon: <Icon as={MdBlurLinear} width='20px' height='20px' color='inherit' />,
     component: ParametersView,
+  },
+  {
+    name: "Przykłady Tłumaczeń",
+    layout: "/admin",
+    path: "/translation-manager",
+    icon: <Icon as={MdGTranslate} width='20px' height='20px' color='inherit' />,
+    component: TranslationManagerView,
   },
   // {
   //   name: "RTL Admin",

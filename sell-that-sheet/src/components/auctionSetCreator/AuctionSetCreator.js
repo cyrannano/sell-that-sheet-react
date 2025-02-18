@@ -182,6 +182,11 @@ const AuctionSetCreator = () => {
 
       // apply auctions[0].photoset = response.id; to state
       let auctionsCopy = [...auctions];
+      if(response.id === undefined || response.id === null || response.id === '') {
+        toast.error('Wystąpił błąd podczas zapisywania zdjęć - brak ID');
+        setLoading(false);
+        return;
+      }
       auctionsCopy[0].photosetBase = response.id;
       const auctionSetId = processAuctions(auctionsCopy, folderChain, auctionSetName, selectedOwner).then((auctionSet) => {
 

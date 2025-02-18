@@ -495,4 +495,25 @@ export async function fetchTranslations() {
   return response.data;
 }
 
+export async function saveTranslationExamples(translation) {
+  const response = await api.post('/translationexample/', translation);
+  return response.data;
+}
+
+export async function fetchTranslationExamples(translation) {
+  const response = await api.get('/translationexample/', translation);
+  return response.data;
+}
+
+export async function updateTranslationExample(id, translation) {
+  const response = await api.put(`/translationexample/${id}/`, translation);
+  return response.data;
+}
+
+export async function deleteTranslationExample(id) {
+  const response = await api.delete(`/translationexample/${id}/`);
+  return response.data;
+}
+
+
 export { api };

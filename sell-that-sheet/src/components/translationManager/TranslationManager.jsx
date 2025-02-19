@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Box, Input, Button, VStack, Text, Select, Table, Thead, Tbody, Tr, Th, Td } from "@chakra-ui/react";
+import { Box, Textarea, Button, VStack, Text, Select, Table, Thead, Tbody, Tr, Th, Td, Input } from "@chakra-ui/react";
 import { fetchTranslationExamples, saveTranslationExamples, updateTranslationExample, deleteTranslationExample } from "contexts/AuthContext";
+import { MdEdit, MdDeleteForever } from "react-icons/md";
 
 const TranslationManager = () => {
   const [translations, setTranslations] = useState([]);
@@ -8,6 +9,7 @@ const TranslationManager = () => {
   const [targetLanguage, setTargetLanguage] = useState("de");
   const [sourceText, setSourceText] = useState("");
   const [targetText, setTargetText] = useState("");
+  const [categoryId, setCategoryId] = useState("");
   const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
@@ -24,30 +26,29 @@ const TranslationManager = () => {
   };
 
   const handleSave = async () => {
-    if (!sourceText || !targetText) {
-      alert("Tekst i jego tłumaczenie są wymagane!");
+    if (!sourceText || !targetText || !categoryId) {
+      alert("Tekst, tłumaczenie i kategoria są wymagane!");
       return;
     }
 
+    const translationData = {
+      source_language: sourceLanguage,
+      target_language: targetLanguage,
+      source_text: sourceText,
+      target_text: targetText,
+      category_id: Number(categoryId),
+    };
+
     try {
       if (editingId) {
-        await updateTranslationExample(editingId, {
-          source_language: sourceLanguage,
-          target_language: targetLanguage,
-          source_text: sourceText,
-          target_text: targetText,
-        });
+        await updateTranslationExample(editingId, translationData);
         setEditingId(null);
       } else {
-        await saveTranslationExamples({
-          source_language: sourceLanguage,
-          target_language: targetLanguage,
-          source_text: sourceText,
-          target_text: targetText,
-        });
+        await saveTranslationExamples(translationData);
       }
       setSourceText("");
       setTargetText("");
+      setCategoryId("");
       loadTranslations();
     } catch (error) {
       console.error("Nie udało się zapisać tłumaczenia", error);
@@ -60,6 +61,7 @@ const TranslationManager = () => {
     setTargetLanguage(translation.target_language);
     setSourceText(translation.source_text);
     setTargetText(translation.target_text);
+    setCategoryId(translation.category_id);
   };
 
   const handleDelete = async (id) => {
@@ -74,7 +76,7 @@ const TranslationManager = () => {
   };
 
   return (
-    <Box p={5} maxW="800px" mx="auto">
+    <Box p={5} maxW="1000px" mx="auto">
       <VStack spacing={4}>
         <Text fontSize="xl" fontWeight="bold">
           Słownik Tłumaczeń
@@ -91,42 +93,53 @@ const TranslationManager = () => {
         </Select>
 
         <Input
+          type="number"
+          placeholder="ID kategorii"
+          value={categoryId}
+          onChange={(e) => setCategoryId(e.target.value)}
+        />
+
+        <Textarea
           placeholder="Wprowadź tekst"
           value={sourceText}
           onChange={(e) => setSourceText(e.target.value)}
+          size="lg"
         />
-        <Input
+        <Textarea
           placeholder="Przetłumacz"
           value={targetText}
           onChange={(e) => setTargetText(e.target.value)}
+          size="lg"
         />
         <Button colorScheme="blue" onClick={handleSave}>
           {editingId ? "Zaktualizuj tłumaczenie" : "Zapisz tłumaczenie"}
         </Button>
 
-        <Table variant="simple">
+        {/* Updated Table Layout */}
+        <Table variant="simple" width="100%">
           <Thead>
             <Tr>
-              <Th>Język źródłowy</Th>
-              <Th>Język docelowy</Th>
-              <Th>Oryginalny tekst</Th>
-              <Th>Tłumaczenie</Th>
-              <Th>Akcje</Th>
+              <Th width="7.5%">Języki</Th>
+              <Th width="7.5%">Kategoria</Th>
+              <Th width="40%">Oryginalny tekst</Th>
+              <Th width="40%">Tłumaczenie</Th>
+              <Th width="5%">Akcje</Th>
+
             </Tr>
           </Thead>
           <Tbody>
             {translations.map((t) => (
               <Tr key={t.id}>
-                <Td>{t.source_language}</Td>
-                <Td>{t.target_language}</Td>
+                <Td>{t.source_language} → {t.target_language}</Td>
+                <Td>{t.category_id}</Td>
                 <Td>{t.source_text}</Td>
                 <Td>{t.target_text}</Td>
                 <Td>
                   <Button size="sm" colorScheme="yellow" onClick={() => handleEdit(t)} mr={2}>
-                    Edytuj
+                    <MdEdit />
                   </Button>
                   <Button size="sm" colorScheme="red" onClick={() => handleDelete(t.id)}>
-                    Usuń
+                    <MdDeleteForever />
                   </Button>
                 </Td>
               </Tr>

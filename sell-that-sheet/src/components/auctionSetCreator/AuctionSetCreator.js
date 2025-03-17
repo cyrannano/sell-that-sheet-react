@@ -72,6 +72,7 @@ const AuctionSetCreator = () => {
   const [selectedOwner, setSelectedOwner] = useState(null);
   const [thumbnailImageName, setThumbnailImageName] = useState(null);
   const [imageList, setImageList] = useState([]);
+  const [auctionTranslations, setAuctionTranslations] = useState({});
 
   const fetchFiles = async () => {
     let files = await browseDirectory(folderChain);
@@ -216,6 +217,7 @@ const AuctionSetCreator = () => {
           setAuctionSetName(null);
           setUsedCategories([null]);
           resetSelectedImages();
+          setAuctionTranslations({});
         })
         .catch((error) => {
           console.error('Error pushing to Baselinker:', error);
@@ -508,7 +510,7 @@ const AuctionSetCreator = () => {
               <TabPanel key={index} p={0} width="100%">
                 <ChakraProvider>
                   <Box overflow="auto">
-                    <AuctionForm offerObject={categoryParameters} categoryId={currentCategory} auctions={auctions} setAuctions={setAuctions} auctionName={newProductName} resetFileBrowserView={resetFileBrowserView}/>
+                    <AuctionForm offerObject={categoryParameters} categoryId={currentCategory} auctions={auctions} setAuctions={setAuctions} auctionName={newProductName} resetFileBrowserView={resetFileBrowserView} auctionTranslations={auctionTranslations} setAuctionTranslations={setAuctionTranslations}/>
                   </Box>
                 </ChakraProvider>
               </TabPanel>

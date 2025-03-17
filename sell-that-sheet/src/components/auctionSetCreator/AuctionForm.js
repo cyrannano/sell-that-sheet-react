@@ -49,7 +49,7 @@ const ChakraField = ({ label, children, disabled, ...props }) => (
   </FormControl>
 );
 
-const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFileBrowserView }) => {
+const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFileBrowserView, auctionTranslations, setAuctionTranslations }) => {
   const [formFields, setFormFields] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedAuction, setSelectedAuction] = useState(null);
@@ -64,7 +64,6 @@ const AuctionForm = ({ categoryId, offerObject, auctions, setAuctions, resetFile
   const { isOpen: isFieldTranslationModalOpen, onOpen: openFieldTranslationModal, onClose: closeFieldTranslationModal } = useDisclosure();
   const [externalSetFieldValue, setExternalSetFieldValue] = useState(null);
   const [currentFormikValues, setCurrentFormikValues] = useState({});
-  const [auctionTranslations, setAuctionTranslations] = useState({});
 
   
   useEffect(() => {

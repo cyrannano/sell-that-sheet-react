@@ -10,7 +10,7 @@ import {
   MdBlurLinear,
   MdGTranslate,
 } from "react-icons/md";
-import { FaTags } from "react-icons/fa";
+import { FaTag, FaTags } from "react-icons/fa";
 
 // Admin Imports
 import MainDashboard from "views/admin/default";
@@ -24,6 +24,7 @@ import RTL from "views/admin/rtl";
 import SignInCentered from "views/auth/signIn";
 import TranslationManagerView from "views/admin/translationManager";
 import TagsManagerView from "views/admin/tagsManager";
+import CategoryTagsManagerView from "views/admin/categoryTagsManager";
 
 const routes = [
   {
@@ -87,8 +88,15 @@ const routes = [
     name: "Własne Tagi",
     layout: "/admin",
     path: "/custom-tags",
-    icon: <Icon as={FaTags} width="20px" height="20px" color="inherit" />,
+    icon: <Icon as={FaTag} width="20px" height="20px" color="inherit" />,
     component: TagsManagerView,
+  },
+  {
+    name: "Tagi Kategorii",
+    layout: "/admin",
+    path: "/category-tags",
+    icon: <Icon as={FaTags} width="20px" height="20px" color="inherit" />,
+    component: CategoryTagsManagerView,
   },
   // {
   //   name: "RTL Admin",

@@ -570,4 +570,21 @@ export async function changeTag(id, value) {
   return response.data;
 }
 
+export const fetchCategoryTags = async (language = "pl") => {
+  const response = await api.get(`/category-tags/?language=${language}`);
+  return response.data;
+};
+
+export const createCategoryTag = async (category_id, tags, language = "pl") => {
+  await api.post("/category-tags/", { category_id, tags, language });
+};
+
+export const removeCategoryTag = async (id, language = "pl") => {
+  await api.delete(`/category-tags/${id}/?language=${language}`);
+};
+
+export const changeCategoryTag = async (id, tags) => {
+  await api.put(`/category-tags/${id}/`, { tags });
+};
+
 export { api };

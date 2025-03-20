@@ -8,8 +8,9 @@ import {
   MdLock,
   MdOutlineShoppingCart,
   MdBlurLinear,
-  MdGTranslate
+  MdGTranslate,
 } from "react-icons/md";
+import { FaTags } from "react-icons/fa";
 
 // Admin Imports
 import MainDashboard from "views/admin/default";
@@ -29,7 +30,7 @@ const routes = [
     name: "Opisywanie",
     layout: "/admin",
     path: "/default",
-    icon: <Icon as={MdHome} width='20px' height='20px' color='inherit' />,
+    icon: <Icon as={MdHome} width="20px" height="20px" color="inherit" />,
     component: MainDashboard,
   },
   {
@@ -39,9 +40,9 @@ const routes = [
     icon: (
       <Icon
         as={MdOutlineShoppingCart}
-        width='20px'
-        height='20px'
-        color='inherit'
+        width="20px"
+        height="20px"
+        color="inherit"
       />
     ),
     component: NFTMarketplace,
@@ -65,28 +66,28 @@ const routes = [
     name: "Logowanie",
     layout: "/auth",
     path: "/sign-in",
-    icon: <Icon as={MdLock} width='20px' height='20px' color='inherit' />,
+    icon: <Icon as={MdLock} width="20px" height="20px" color="inherit" />,
     component: SignInCentered,
   },
   {
     name: "Parametry",
     layout: "/admin",
     path: "/parameters",
-    icon: <Icon as={MdBlurLinear} width='20px' height='20px' color='inherit' />,
+    icon: <Icon as={MdBlurLinear} width="20px" height="20px" color="inherit" />,
     component: ParametersView,
   },
   {
     name: "Przykłady Tłumaczeń",
     layout: "/admin",
     path: "/translation-manager",
-    icon: <Icon as={MdGTranslate} width='20px' height='20px' color='inherit' />,
+    icon: <Icon as={MdGTranslate} width="20px" height="20px" color="inherit" />,
     component: TranslationManagerView,
   },
   {
     name: "Własne Tagi",
     layout: "/admin",
     path: "/custom-tags",
-    icon: <Icon as={MdGTranslate} width='20px' height='20px' color='inherit' />,
+    icon: <Icon as={FaTags} width="20px" height="20px" color="inherit" />,
     component: TagsManagerView,
   },
   // {

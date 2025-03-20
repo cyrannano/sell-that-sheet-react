@@ -22,6 +22,7 @@ import RTL from "views/admin/rtl";
 // Auth Imports
 import SignInCentered from "views/auth/signIn";
 import TranslationManagerView from "views/admin/translationManager";
+import TagsManagerView from "views/admin/tagsManager";
 
 const routes = [
   {
@@ -80,6 +81,13 @@ const routes = [
     path: "/translation-manager",
     icon: <Icon as={MdGTranslate} width='20px' height='20px' color='inherit' />,
     component: TranslationManagerView,
+  },
+  {
+    name: "Własne Tagi",
+    layout: "/admin",
+    path: "/custom-tags",
+    icon: <Icon as={MdGTranslate} width='20px' height='20px' color='inherit' />,
+    component: TagsManagerView,
   },
   // {
   //   name: "RTL Admin",

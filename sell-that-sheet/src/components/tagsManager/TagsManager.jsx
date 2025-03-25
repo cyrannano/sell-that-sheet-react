@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import debounce from "lodash.debounce";
 import {
   Box,
   Input,
@@ -29,6 +30,8 @@ const TagsManager = () => {
   useEffect(() => {
     loadTags();
   }, [language]); // Reload when language changes
+
+  const debouncedUpdateRef = useRef();
 
   const loadTags = async () => {
     try {
@@ -63,12 +66,18 @@ const TagsManager = () => {
   };
 
   const updateTag = async (id, newValue) => {
-    try {
-      await changeTag(id, newValue);
-      loadTags();
-    } catch (error) {
-      console.error("Failed to update tag:", error);
+    if (!debouncedUpdateRef.current) {
+      debouncedUpdateRef.current = debounce(async (id, newValue) => {
+        try {
+          await changeTag(id, newValue);
+          loadTags();
+        } catch (error) {
+          console.error("Failed to update tag:", error);
+        }
+      }, 1000);
     }
+
+    debouncedUpdateRef.current(id, newValue);
   };
 
   return (
@@ -114,7 +123,16 @@ const TagsManager = () => {
                   <Heading size="sm">{tag.key}</Heading>
                   <Textarea
                     value={tag.value}
-                    onChange={(e) => updateTag(tag.id, e.target.value)}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      setTags((prevTags) => {
+                        const newTags = prevTags.map((t) =>
+                          t.id === tag.id ? { ...t, value: newValue } : t
+                        );
+                        updateTag(tag.id, newValue);
+                        return newTags;
+                      });
+                    }}
                     size="sm"
                     resize="vertical"
                   />

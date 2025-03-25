@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import debounce from "lodash.debounce";
 import {
   Box,
   Input,
@@ -18,6 +19,7 @@ import {
   createCategoryTag,
   removeCategoryTag,
   changeCategoryTag,
+  getCategoryById,
 } from "contexts/AuthContext";
 
 const CategoryTagsManager = () => {
@@ -25,16 +27,34 @@ const CategoryTagsManager = () => {
   const [categoryId, setCategoryId] = useState("");
   const [tags, setTags] = useState("");
   const [language, setLanguage] = useState("pl");
+  const [categoryNames, setCategoryNames] = useState({});
 
   useEffect(() => {
     loadCategories();
   }, [language]);
 
+  const debouncedUpdateRef = useRef();
+
+  const resolveCategoryName = async (id) => {
+    if (categoryNames[id]) return; // Already cached
+
+    try {
+      const data = await getCategoryById(id);
+      setCategoryNames((prev) => ({ ...prev, [id]: data.name }));
+    } catch (error) {
+      console.error(`Failed to fetch category name for ID ${id}:`, error);
+    }
+  };
+
   const loadCategories = async () => {
     try {
       const response = await fetchCategoryTags(language);
-      console.log("Fetched Categories:", response);
       setCategories(Array.isArray(response) ? response : []);
+
+      // Resolve names
+      await Promise.all(
+        response.map((cat) => resolveCategoryName(cat.category_id))
+      );
     } catch (error) {
       console.error("Failed to fetch categories:", error);
       setCategories([]);
@@ -65,17 +85,23 @@ const CategoryTagsManager = () => {
     }
   };
 
-  const updateCategory = async (id, newTags) => {
-    try {
-      await changeCategoryTag(id, newTags);
-      loadCategories();
-    } catch (error) {
-      console.error("Failed to update category tag:", error);
+  const handleUpdateCategory = (id, newTags) => {
+    if (!debouncedUpdateRef.current) {
+      debouncedUpdateRef.current = debounce(async (id, value) => {
+        try {
+          await changeCategoryTag(id, value);
+          loadCategories();
+        } catch (error) {
+          console.error("Failed to update category tag:", error);
+        }
+      }, 1000); // 500ms delay
     }
+
+    debouncedUpdateRef.current(id, newTags);
   };
 
   return (
-    <Box p={4} maxW="600px" mx="auto">
+    <Box p={4} maxW="800px" width="800px" mx="auto">
       <Heading size="lg" mb={4}>
         Kategorie
       </Heading>
@@ -113,15 +139,29 @@ const CategoryTagsManager = () => {
           categories.map((category) => (
             <ListItem key={category.id} p={2} borderWidth={1} borderRadius="md">
               <HStack justify="space-between">
-                <VStack align="start">
-                  <Heading size="sm">ID: {category.category_id}</Heading>
+                <VStack width="100%" align="start">
+                  <Heading size="sm">
+                    {categoryNames[category.category_id]
+                      ? `${categoryNames[category.category_id]} (ID: ${
+                          category.category_id
+                        })`
+                      : `ID: ${category.category_id}`}
+                  </Heading>
                   <Textarea
                     value={category.tags}
-                    onChange={(e) =>
-                      updateCategory(category.id, e.target.value)
-                    }
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      setCategories((prev) =>
+                        prev.map((cat) =>
+                          cat.id === category.id
+                            ? { ...cat, tags: newValue }
+                            : cat
+                        )
+                      );
+                      handleUpdateCategory(category.id, newValue);
+                    }}
                     size="sm"
-                    resize="vertical"
+                    resize="both"
                   />
                 </VStack>
                 <IconButton

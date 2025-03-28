@@ -85,19 +85,18 @@ const CategoryTagsManager = () => {
     }
   };
 
-  const handleUpdateCategory = (id, newTags) => {
+  const handleUpdateCategory = (id, newTags, lang) => {
     if (!debouncedUpdateRef.current) {
-      debouncedUpdateRef.current = debounce(async (id, value) => {
+      debouncedUpdateRef.current = debounce(async (id, value, lang) => {
         try {
-          await changeCategoryTag(id, value);
-          loadCategories();
+          await changeCategoryTag(id, value, lang);
         } catch (error) {
           console.error("Failed to update category tag:", error);
         }
-      }, 1000); // 500ms delay
+      }, 1000);
     }
 
-    debouncedUpdateRef.current(id, newTags);
+    debouncedUpdateRef.current(id, newTags, lang);
   };
 
   return (
@@ -158,7 +157,7 @@ const CategoryTagsManager = () => {
                             : cat
                         )
                       );
-                      handleUpdateCategory(category.id, newValue);
+                      handleUpdateCategory(category.id, newValue, language);
                     }}
                     size="sm"
                     resize="both"

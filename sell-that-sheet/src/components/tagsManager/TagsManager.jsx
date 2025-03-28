@@ -65,11 +65,11 @@ const TagsManager = () => {
     }
   };
 
-  const updateTag = async (id, newValue) => {
+  const updateTag = async (id, newValue, language) => {
     if (!debouncedUpdateRef.current) {
-      debouncedUpdateRef.current = debounce(async (id, newValue) => {
+      debouncedUpdateRef.current = debounce(async (id, value, language) => {
         try {
-          await changeTag(id, newValue);
+          await changeTag(id, value, language);
           loadTags();
         } catch (error) {
           console.error("Failed to update tag:", error);
@@ -77,7 +77,7 @@ const TagsManager = () => {
       }, 1000);
     }
 
-    debouncedUpdateRef.current(id, newValue);
+    debouncedUpdateRef.current(id, newValue, language);
   };
 
   return (
@@ -129,7 +129,7 @@ const TagsManager = () => {
                         const newTags = prevTags.map((t) =>
                           t.id === tag.id ? { ...t, value: newValue } : t
                         );
-                        updateTag(tag.id, newValue);
+                        updateTag(tag.id, newValue, language);
                         return newTags;
                       });
                     }}

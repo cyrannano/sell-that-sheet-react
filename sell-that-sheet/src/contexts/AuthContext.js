@@ -565,8 +565,10 @@ export const removeTag = async (id, language = "pl") => {
   await api.delete(`/tags/${id}/?language=${language}`); // Ensure language is passed
 };
 
-export async function changeTag(id, value) {
-  const response = await api.put(`/tags/${id}/`, { value });
+export async function changeTag(id, value, language) {
+  const response = await api.put(`/tags/${id}/?language=${language}`, {
+    value,
+  });
   return response.data;
 }
 
@@ -583,8 +585,8 @@ export const removeCategoryTag = async (id, language = "pl") => {
   await api.delete(`/category-tags/${id}/?language=${language}`);
 };
 
-export const changeCategoryTag = async (id, tags) => {
-  await api.put(`/category-tags/${id}/`, { tags });
+export const changeCategoryTag = async (id, tags, language = "pl") => {
+  await api.put(`/category-tags/${id}/?language=${language}`, { tags });
 };
 
 export { api };

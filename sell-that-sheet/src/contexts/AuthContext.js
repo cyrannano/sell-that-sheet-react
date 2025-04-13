@@ -589,4 +589,30 @@ export const changeCategoryTag = async (id, tags, language = "pl") => {
   await api.put(`/category-tags/${id}/?language=${language}`, { tags });
 };
 
+// Function to create a new custom category parameter
+export const createCategoryParameter = async (data) => {
+  const response = await api.post("/category-parameters/", data);
+  return response.data;
+};
+
+// Function to retrieve custom parameters for a category
+export const getCustomCategoryParameters = async (categoryId) => {
+  const response = await api.get(
+    `/category-parameters/?category_id=${categoryId}`
+  );
+  return response.data;
+};
+
+// Function to update an existing custom category parameter
+export const updateCategoryParameter = async (id, data) => {
+  const response = await api.put(`/category-parameters/${id}/`, data);
+  return response.data;
+};
+
+// Function to delete a custom category parameter
+export const deleteCategoryParameter = async (id) => {
+  const response = await api.delete(`/category-parameters/${id}/`);
+  return response.data;
+};
+
 export { api };

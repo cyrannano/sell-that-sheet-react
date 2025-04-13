@@ -11,6 +11,7 @@ import {
   MdGTranslate,
 } from "react-icons/md";
 import { FaTag, FaTags } from "react-icons/fa";
+import { FiTool } from "react-icons/fi";
 
 // Admin Imports
 import MainDashboard from "views/admin/default";
@@ -25,6 +26,7 @@ import SignInCentered from "views/auth/signIn";
 import TranslationManagerView from "views/admin/translationManager";
 import TagsManagerView from "views/admin/tagsManager";
 import CategoryTagsManagerView from "views/admin/categoryTagsManager";
+import CustomParameterManagerView from "views/admin/customParameterManager";
 
 const routes = [
   {
@@ -97,6 +99,13 @@ const routes = [
     path: "/category-tags",
     icon: <Icon as={FaTags} width="20px" height="20px" color="inherit" />,
     component: CategoryTagsManagerView,
+  },
+  {
+    name: "Własne Parametry",
+    layout: "/admin",
+    path: "/custom-params",
+    icon: <Icon as={FiTool} width="20px" height="20px" color="inherit" />,
+    component: CustomParameterManagerView,
   },
   // {
   //   name: "RTL Admin",

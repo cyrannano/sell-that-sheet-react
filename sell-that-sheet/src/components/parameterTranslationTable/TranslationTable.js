@@ -15,12 +15,12 @@ import {
   Button,
 } from "@chakra-ui/react";
 import { ChevronDownIcon, ChevronRightIcon } from "@chakra-ui/icons";
-import { toast } from 'react-toastify';
-import { 
-  getAllParameters, 
+import { toast } from "react-toastify";
+import {
+  getAllParameters,
   getAllAuctionParameters,
   fetchTranslations,
-  saveTranslations
+  saveTranslations,
 } from "contexts/AuthContext";
 
 const TranslationTable = () => {
@@ -39,37 +39,35 @@ const TranslationTable = () => {
           getAllParameters(),
           getAllAuctionParameters(),
         ]);
-  
-        const loadedTranslations = await fetchTranslations(); 
+        const loadedTranslations = await fetchTranslations();
         // loadedTranslations looks like the JSON shown above
-  
+
         // Build paramTranslations
         const paramMap = {};
-        loadedTranslations.param_translations.forEach(item => {
+        loadedTranslations.param_translations.forEach((item) => {
           paramMap[item.param_id] = item.translation;
         });
         setParamTranslations(paramMap);
-  
+
         // Build auctionParamTranslations
         const auctionMap = {};
-        loadedTranslations.auction_param_translations.forEach(item => {
+        loadedTranslations.auction_param_translations.forEach((item) => {
           if (!auctionMap[item.param_id]) {
             auctionMap[item.param_id] = {};
           }
           auctionMap[item.param_id][item.value_name] = item.translation;
         });
         setAuctionParamTranslations(auctionMap);
-  
+
         setParameters(params);
         setAuctionParameters(auctionParams);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
-  
+
     fetchData();
   }, []);
-  
 
   // Expand/collapse a parameter row
   const handleExpand = (paramId) => {
@@ -85,19 +83,23 @@ const TranslationTable = () => {
   };
 
   const handleParamTranslationChange = (paramId, newValue) => {
-    setParamTranslations(prev => ({
+    setParamTranslations((prev) => ({
       ...prev,
       [paramId]: newValue,
     }));
   };
-  
-  const handleAuctionParamTranslationChange = (paramId, valueName, newValue) => {
-    setAuctionParamTranslations(prev => ({
+
+  const handleAuctionParamTranslationChange = (
+    paramId,
+    valueName,
+    newValue
+  ) => {
+    setAuctionParamTranslations((prev) => ({
       ...prev,
       [paramId]: {
         ...(prev[paramId] || {}),
-        [valueName]: newValue
-      }
+        [valueName]: newValue,
+      },
     }));
   };
 
@@ -107,7 +109,7 @@ const TranslationTable = () => {
     if (!paramTranslations[paramId] || !paramTranslations[paramId].trim()) {
       return false;
     }
-  
+
     // 2) Check sub-values
     const values = auctionParameters.filter((ap) => ap.parameter === paramId);
     for (const val of values) {
@@ -116,7 +118,7 @@ const TranslationTable = () => {
         return false;
       }
     }
-  
+
     return true;
   };
 
@@ -147,21 +149,23 @@ const TranslationTable = () => {
       })
       .catch((error) => {
         console.error("Error saving translations:", error);
-        toast.error("Wystąpił błąd podczas zapisywania tłumaczeń. Spróbuj ponownie.");
+        toast.error(
+          "Wystąpił błąd podczas zapisywania tłumaczeń. Spróbuj ponownie."
+        );
       });
   };
 
   // Render sub-values for a given parameter
   const renderParameterValues = (paramId) => {
     const values = auctionParameters.filter((ap) => ap.parameter === paramId);
-  
+
     return (
       <VStack spacing={2} align="start" mt={2}>
         {values.map((val) => {
           const uniqueKey = `param-${paramId}-value-${val.value_name}`;
           const valueExists =
             auctionParamTranslations[paramId]?.[val.value_name]?.trim();
-  
+
           return (
             <Box key={uniqueKey} w="100%">
               <Text fontSize="sm" mb={1}>
@@ -170,13 +174,15 @@ const TranslationTable = () => {
               <Input
                 size="sm"
                 bg={
-                  showUntranslatedOnly && !valueExists
-                    ? "yellow.100"
-                    : "white"
+                  showUntranslatedOnly && !valueExists ? "yellow.100" : "white"
                 }
                 value={valueExists || ""}
                 onChange={(e) =>
-                  handleAuctionParamTranslationChange(paramId, val.value_name, e.target.value)
+                  handleAuctionParamTranslationChange(
+                    paramId,
+                    val.value_name,
+                    e.target.value
+                  )
                 }
                 placeholder={`Tłumaczenie "${val.value_name}"`}
               />
@@ -186,17 +192,28 @@ const TranslationTable = () => {
       </VStack>
     );
   };
-  
+
   return (
     <Box p={6} maxW="800px" mx="auto">
       {/* Header + Control Buttons */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={6}>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={6}
+      >
         <Text fontSize="2xl" fontWeight="bold">
           Tłumaczenie parametrów
         </Text>
         <Box>
-          <Button colorScheme="blue" mr={2} onClick={toggleShowUntranslatedOnly}>
-            {showUntranslatedOnly ? "Pokaż wszystkie" : "Pokaż nieprzetłumaczone"}
+          <Button
+            colorScheme="blue"
+            mr={2}
+            onClick={toggleShowUntranslatedOnly}
+          >
+            {showUntranslatedOnly
+              ? "Pokaż wszystkie"
+              : "Pokaż nieprzetłumaczone"}
           </Button>
           <Button colorScheme="green" onClick={handleSaveTranslations}>
             Zapisz tłumaczenia
@@ -220,7 +237,8 @@ const TranslationTable = () => {
             }
 
             const key = `param-${param.id}`;
-            const paramIsEmpty = !translations[key] || !translations[key].trim();
+            const paramIsEmpty =
+              !translations[key] || !translations[key].trim();
 
             return (
               <React.Fragment key={key}>
@@ -244,19 +262,21 @@ const TranslationTable = () => {
                     </Box>
                   </Td>
                   <Td>
-                  <Input
-  size="sm"
-  bg={
-    showUntranslatedOnly &&
-    (!paramTranslations[param.id] || !paramTranslations[param.id].trim())
-      ? "yellow.100"
-      : "white"
-  }
-  value={paramTranslations[param.id] || ""}
-  onChange={(e) => handleParamTranslationChange(param.id, e.target.value)}
-  placeholder={`Tłumaczenie "${param.name}"`}
-/>
-
+                    <Input
+                      size="sm"
+                      bg={
+                        showUntranslatedOnly &&
+                        (!paramTranslations[param.id] ||
+                          !paramTranslations[param.id].trim())
+                          ? "yellow.100"
+                          : "white"
+                      }
+                      value={paramTranslations[param.id] || ""}
+                      onChange={(e) =>
+                        handleParamTranslationChange(param.id, e.target.value)
+                      }
+                      placeholder={`Tłumaczenie "${param.name}"`}
+                    />
                   </Td>
                   <Td />
                 </Tr>

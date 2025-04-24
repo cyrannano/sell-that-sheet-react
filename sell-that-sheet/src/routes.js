@@ -10,6 +10,7 @@ import {
   MdBlurLinear,
   MdGTranslate,
 } from "react-icons/md";
+import { RiTranslate } from "react-icons/ri";
 import { FaTag, FaTags } from "react-icons/fa";
 import { FiTool } from "react-icons/fi";
 
@@ -27,6 +28,7 @@ import TranslationManagerView from "views/admin/translationManager";
 import TagsManagerView from "views/admin/tagsManager";
 import CategoryTagsManagerView from "views/admin/categoryTagsManager";
 import CustomParameterManagerView from "views/admin/customParameterManager";
+import BaselinkerProductTranslation from "views/admin/baselinkerProductTranslation";
 
 const routes = [
   {
@@ -106,6 +108,13 @@ const routes = [
     path: "/custom-params",
     icon: <Icon as={FiTool} width="20px" height="20px" color="inherit" />,
     component: CustomParameterManagerView,
+  },
+  {
+    name: "Tłumaczenie BL",
+    layout: "/admin",
+    path: "/baselinker-product-translation",
+    icon: <Icon as={RiTranslate} width="20px" height="20px" color="inherit" />,
+    component: BaselinkerProductTranslation,
   },
   // {
   //   name: "RTL Admin",

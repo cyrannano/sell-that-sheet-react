@@ -26,10 +26,6 @@ const TranslateBaselinkerProducts = () => {
   const [results, setResults] = useState([]);
   const [globalWarnings, setGlobalWarnings] = useState([]);
 
-  useEffect(() => {
-    setError("To jeszcze nie jest włączone.");
-  }, []);
-
   // Parsuje tekst wejściowy na listę unikalnych ID (int)
   const parseIds = (text) => {
     const parts = text
@@ -54,7 +50,7 @@ const TranslateBaselinkerProducts = () => {
     setLoading(true);
     try {
       const payload = { product_ids: ids, language };
-      const response = await api.post("/api/translate-products/", payload);
+      const response = await api.post("/api/translate-bl-products/", payload);
       // Oczekujemy, że backend zwróci { results: [...], warnings: [...] }
       const data = response.data;
       setResults(data.results || []);

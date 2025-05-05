@@ -227,11 +227,11 @@ export const getParameter = async (allegro_id) => {
 };
 
 // Function to add a new parameter
-export const addParameter = async (allegro_id) => {
+export const addParameter = async (allegro_id, name, type) => {
   const response = await api.post("/parameters/", {
     allegro_id,
-    name: null,
-    type: null,
+    name: name,
+    type: type,
   });
   return response.data;
 };
@@ -285,6 +285,11 @@ export const processAuctions = async (
     auctionIds.push(auctionId);
 
     // Process customParams
+    console.log("Processing custom params:", auction.customParams);
+    const catCustomParams = await getCustomCategoryParameters(
+      auction.categoryBase
+    );
+
     for (const [allegro_id, value_name] of Object.entries(
       auction.customParams
     )) {
@@ -293,8 +298,26 @@ export const processAuctions = async (
         // Check if the parameter exists
         let parameter = await getParameter(allegro_id);
         if (!parameter) {
-          // Create the parameter if it doesn't exist
-          parameter = await addParameter(allegro_id);
+          if (
+            allegro_id.startsWith("custom_") &&
+            catCustomParams !== null &&
+            catCustomParams.length > 0
+          ) {
+            // If the parameter is custom, fetch the parameter from the catCustomParams
+            const customParam = catCustomParams.find(
+              (param) => `custom_${param.id}` === allegro_id
+            );
+            if (customParam) {
+              parameter = await addParameter(
+                allegro_id,
+                customParam.name_pl,
+                customParam.parameter_type
+              );
+            }
+          } else {
+            // Create the parameter if it doesn't exist
+            parameter = await addParameter(allegro_id);
+          }
         }
         const parameterId = parameter.id;
 

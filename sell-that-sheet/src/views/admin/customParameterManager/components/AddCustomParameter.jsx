@@ -10,39 +10,36 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { getCategoryById, createCategoryParameter } from "contexts/AuthContext";
-import ValuesInput from "./ValuesInput";
+import ValuePairsInput from "./ValuePairsInput";
 
 const AddCustomParameter = ({ onParameterAdded }) => {
-  // State for category lookup
   const [categoryId, setCategoryId] = useState("");
   const [categoryName, setCategoryName] = useState("");
   const [lookupError, setLookupError] = useState("");
 
-  // State for parameter form for multiple languages
   const [parameterNamePl, setParameterNamePl] = useState("");
   const [parameterNameDe, setParameterNameDe] = useState("");
   const [parameterType, setParameterType] = useState("text");
-  const [possibleValuesPl, setPossibleValuesPl] = useState([]); // Polish values array
-  const [possibleValuesDe, setPossibleValuesDe] = useState([]); // German values array
+  const [valuePairs, setValuePairs] = useState([]);
 
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // Lookup category name based on input ID
   const fetchCategoryName = async () => {
-    setLookupError("");
-    setCategoryName("");
-    if (!categoryId.trim()) {
-      setLookupError("Proszę podać ID kategorii.");
+    if (categoryId === null) {
+      setCategoryName("Parametr uniwersalny");
       return;
     }
+    setLookupError("");
+    setCategoryName("");
+    const id = categoryId.trim();
+    if (!id) return;
     try {
-      const category = await getCategoryById(categoryId.trim());
+      const category = await getCategoryById(id);
       setCategoryName(category.name);
-    } catch (error) {
+    } catch {
       setLookupError("Nie znaleziono kategorii o podanym ID.");
-      console.error("Błąd wyszukiwania kategorii:", error);
     }
   };
 
@@ -50,55 +47,47 @@ const AddCustomParameter = ({ onParameterAdded }) => {
     e.preventDefault();
     setSubmitError("");
     setSuccess("");
-    if (!categoryId.trim() || !categoryName) {
-      setSubmitError(
-        "Proszę podać poprawne ID kategorii i wyszukać jej nazwę."
-      );
+
+    // Only validate category lookup if user entered an ID
+    if (categoryId.trim() && !categoryName) {
+      setSubmitError("Jeśli podałeś ID kategorii, musisz wyszukać jej nazwę.");
       return;
     }
+
     if (!parameterNamePl.trim() || !parameterNameDe.trim()) {
-      setSubmitError(
-        "Wymagane są nazwy parametru w języku polskim i niemieckim."
-      );
+      setSubmitError("Wymagane są nazwy parametru w obu językach.");
       return;
     }
-    if (parameterType === "single" || parameterType === "multi") {
-      if (possibleValuesPl.length === 0) {
-        setSubmitError("Proszę dodać przynajmniej jedną wartość (PL).");
-        return;
-      }
-      if (possibleValuesDe.length === 0) {
-        setSubmitError("Proszę dodać przynajmniej jedną wartość (DE).");
-        return;
-      }
+    if (
+      (parameterType === "single" || parameterType === "multi") &&
+      valuePairs.length === 0
+    ) {
+      setSubmitError("Proszę dodać przynajmniej jedną parę wartości.");
+      return;
     }
+
     setLoading(true);
     try {
       await createCategoryParameter({
-        category_id: categoryId.trim(),
+        category_id: categoryId.trim() || null,
         name_pl: parameterNamePl.trim(),
         name_de: parameterNameDe.trim(),
         parameter_type: parameterType,
-        possible_values_pl:
-          parameterType === "single" || parameterType === "multi"
-            ? possibleValuesPl
-            : null,
-        possible_values_de:
-          parameterType === "single" || parameterType === "multi"
-            ? possibleValuesDe
-            : null,
+        possible_values_pl: ["single", "multi"].includes(parameterType)
+          ? valuePairs.map((p) => p.pl)
+          : null,
+        possible_values_de: ["single", "multi"].includes(parameterType)
+          ? valuePairs.map((p) => p.de)
+          : null,
       });
-      setSuccess("Parametr został pomyślnie dodany.");
-      // Reset the parameter form (keeping category details)
+      setSuccess("Parametr został dodany.");
       setParameterNamePl("");
       setParameterNameDe("");
       setParameterType("text");
-      setPossibleValuesPl([]);
-      setPossibleValuesDe([]);
+      setValuePairs([]);
       if (onParameterAdded) onParameterAdded();
-    } catch (err) {
+    } catch {
       setSubmitError("Błąd podczas dodawania parametru.");
-      console.error("Błąd API:", err.response?.data || err);
     } finally {
       setLoading(false);
     }
@@ -113,24 +102,18 @@ const AddCustomParameter = ({ onParameterAdded }) => {
       borderRadius="md"
     >
       <FormControl mb={4}>
-        <FormLabel>ID kategorii</FormLabel>
+        <FormLabel>ID kategorii (opcjonalnie)</FormLabel>
         <Input
           value={categoryId}
           onChange={(e) => setCategoryId(e.target.value)}
           placeholder="Wprowadź ID kategorii"
         />
-        <Button mt={2} onClick={fetchCategoryName} size="sm" colorScheme="blue">
+        <Button mt={2} size="sm" colorScheme="blue" onClick={fetchCategoryName}>
           Wyszukaj kategorię
         </Button>
-        {lookupError && (
-          <Text color="red.500" mt={2}>
-            {lookupError}
-          </Text>
-        )}
+        {lookupError && <Text color="red.500">{lookupError}</Text>}
         {categoryName && (
-          <Text mt={2} fontWeight="bold">
-            Kategoria: {categoryName}
-          </Text>
+          <Text fontWeight="bold">Kategoria: {categoryName}</Text>
         )}
       </FormControl>
 
@@ -139,7 +122,7 @@ const AddCustomParameter = ({ onParameterAdded }) => {
         <Input
           value={parameterNamePl}
           onChange={(e) => setParameterNamePl(e.target.value)}
-          placeholder="Wprowadź nazwę parametru po polsku"
+          placeholder="Wprowadź nazwę po polsku"
         />
       </FormControl>
 
@@ -148,7 +131,7 @@ const AddCustomParameter = ({ onParameterAdded }) => {
         <Input
           value={parameterNameDe}
           onChange={(e) => setParameterNameDe(e.target.value)}
-          placeholder="Wprowadź nazwę parametru po niemiecku"
+          placeholder="Wprowadź nazwę po niemiecku"
         />
       </FormControl>
 
@@ -165,23 +148,11 @@ const AddCustomParameter = ({ onParameterAdded }) => {
         </Select>
       </FormControl>
 
-      {(parameterType === "single" || parameterType === "multi") && (
-        <>
-          <FormControl mb={4}>
-            <FormLabel>Możliwe wartości (PL)</FormLabel>
-            <ValuesInput
-              values={possibleValuesPl}
-              setValues={setPossibleValuesPl}
-            />
-          </FormControl>
-          <FormControl mb={4}>
-            <FormLabel>Możliwe wartości (DE)</FormLabel>
-            <ValuesInput
-              values={possibleValuesDe}
-              setValues={setPossibleValuesDe}
-            />
-          </FormControl>
-        </>
+      {["single", "multi"].includes(parameterType) && (
+        <FormControl mb={4}>
+          <FormLabel>Możliwe wartości (PL ↔ DE)</FormLabel>
+          <ValuePairsInput pairs={valuePairs} setPairs={setValuePairs} />
+        </FormControl>
       )}
 
       {submitError && (

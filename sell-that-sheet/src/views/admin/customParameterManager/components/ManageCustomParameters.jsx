@@ -26,6 +26,10 @@ const CategoryName = ({ categoryId }) => {
   const [name, setName] = useState("Ładowanie...");
   useEffect(() => {
     const fetchName = async () => {
+      if (categoryId === null) {
+        setName("Parametr uniwersalny");
+        return;
+      }
       try {
         const category = await getCategoryById(categoryId);
         setName(category.name);
@@ -117,7 +121,13 @@ const ManageCustomParameters = ({ refresh }) => {
               <Tr key={param.id}>
                 <Td>{param.id}</Td>
                 <Td>
-                  <CategoryName categoryId={param.category_id.trim()} />
+                  <CategoryName
+                    categoryId={
+                      param.category_id === null
+                        ? null
+                        : param.category_id.trim()
+                    }
+                  />
                 </Td>
                 <Td>{param.name_pl}</Td>
                 <Td>

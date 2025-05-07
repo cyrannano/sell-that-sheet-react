@@ -217,6 +217,11 @@ export const addAuction = async (auctionData) => {
   return response.data; // Should return the created auction with its ID
 };
 
+export const updateAuction = async (auctionId, auctionData) => {
+  const response = await api.put(`/auctions/${auctionId}/`, auctionData);
+  return response.data; // Should return the updated auction
+};
+
 // Function to get a parameter by allegro_id
 export const getParameter = async (allegro_id) => {
   const response = await api.get(`/parameters/?allegro_id=${allegro_id}`);
@@ -246,6 +251,23 @@ export const addAuctionParameter = async (auctionParameterData) => {
 export const addAuctionSet = async (auctionSetData) => {
   const response = await api.post("/auctionsets/", auctionSetData);
   return response.data;
+};
+
+const getCustomParamTranslations = (customParam, to_translate) => {
+  // if to_translate is an array, find the translation for each value
+  if (Array.isArray(to_translate)) {
+    const translations = to_translate.map((value) => {
+      const index = customParam.possible_values_pl.indexOf(value);
+      if (index > -1) {
+        return customParam.possible_values_de[index];
+      } else {
+        return value; // Return the original value if no translation is found
+      }
+    });
+    return translations;
+  } else {
+    return to_translate;
+  }
 };
 
 // Main function to process auctions
@@ -297,27 +319,47 @@ export const processAuctions = async (
         // Check if value_name is not empty
         // Check if the parameter exists
         let parameter = await getParameter(allegro_id);
-        if (!parameter) {
-          if (
-            allegro_id.startsWith("custom_") &&
-            catCustomParams !== null &&
-            catCustomParams.length > 0
-          ) {
-            // If the parameter is custom, fetch the parameter from the catCustomParams
-            const customParam = catCustomParams.find(
-              (param) => `custom_${param.id}` === allegro_id
-            );
-            if (customParam) {
-              parameter = await addParameter(
-                allegro_id,
-                customParam.name_pl,
-                customParam.parameter_type
-              );
-            }
-          } else {
-            // Create the parameter if it doesn't exist
-            parameter = await addParameter(allegro_id);
+        let customParam = null;
+        // If the parameter is custom, fetch the parameter from the catCustomParams
+        if (
+          allegro_id.startsWith("custom_") &&
+          catCustomParams !== null &&
+          catCustomParams.length > 0
+        ) {
+          customParam = catCustomParams.find(
+            (param) => `custom_${param.id}` === allegro_id
+          );
+
+          if (auction.translatedParams["de"] === undefined) {
+            auction.translatedParams["de"] = {};
           }
+          if (auction.translatedParams["de"]["custom"] === undefined) {
+            auction.translatedParams["de"]["custom"] = {};
+          }
+
+          auction.translatedParams["de"]["custom"][customParam.name_de] =
+            getCustomParamTranslations(customParam, value_name);
+
+          console.log(
+            "Custom parameter found:",
+            customParam,
+            "Value name:",
+            value_name,
+            "Translated value:",
+            auction.translatedParams["de"]["custom"][customParam.name_de]
+          );
+        }
+
+        if (!parameter) {
+          if (customParam) {
+            parameter = await addParameter(
+              allegro_id,
+              customParam.name_pl,
+              customParam.parameter_type
+            );
+          }
+
+          parameter = await addParameter(allegro_id);
         }
         const parameterId = parameter.id;
 
@@ -335,6 +377,9 @@ export const processAuctions = async (
         await addAuctionParameter(auctionParameterData);
       }
     }
+
+    auctionData.translated_params = auction.translatedParams;
+    updateAuction(auctionId, auctionData);
   }
 
   // Create the auction set

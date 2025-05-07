@@ -116,7 +116,7 @@ const EditParameterModal = ({ isOpen, onClose, parameter }) => {
             </FormControl>
 
             {["single", "multi"].includes(parameterType) && (
-              <FormControl mb={4} isRequired>
+              <FormControl mb={4}>
                 <FormLabel>Możliwe wartości (PL ↔ DE)</FormLabel>
                 <ValuePairsInput pairs={valuePairs} setPairs={setValuePairs} />
               </FormControl>

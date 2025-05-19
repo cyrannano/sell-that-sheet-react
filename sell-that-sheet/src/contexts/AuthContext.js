@@ -683,4 +683,9 @@ export const deleteCategoryParameter = async (id) => {
   return response.data;
 };
 
+export const fetchBaselinkerInventories = async () => {
+  const response = await api.get(`/baselinker/inventories/`);
+  return response.data;
+};
+
 export { api };

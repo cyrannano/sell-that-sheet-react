@@ -16,7 +16,7 @@ import {
   FormControl,
   FormLabel,
 } from "@chakra-ui/react";
-import { api } from "contexts/AuthContext";
+import { api, fetchBaselinkerInventories } from "contexts/AuthContext";
 
 const TranslateBaselinkerProducts = () => {
   const [inputValue, setInputValue] = useState("");
@@ -25,6 +25,28 @@ const TranslateBaselinkerProducts = () => {
   const [error, setError] = useState(null);
   const [results, setResults] = useState([]);
   const [globalWarnings, setGlobalWarnings] = useState([]);
+  const [inventoryId, setInventoryId] = useState(null);
+
+  const [baselinkerCategories, setBaselinkerCategories] = useState([]);
+
+  // Pobierz Katalogi Produktów z API
+  useEffect(() => {
+    const fetchInventories = async () => {
+      try {
+        const response = await fetchBaselinkerInventories();
+        const inventories = response;
+        console.log("Katalogi Produktów:", inventories);
+        setBaselinkerCategories(inventories);
+        if (inventories.length > 0) {
+          setInventoryId(inventories[0].id);
+        }
+      } catch (error) {
+        console.error("Błąd podczas pobierania Katalogów Produktów:", error);
+        setError("Nie można pobrać Katalogów Produktów.");
+      }
+    };
+    fetchInventories();
+  }, []);
 
   // Parsuje tekst wejściowy na listę unikalnych ID (int)
   const parseIds = (text) => {
@@ -49,7 +71,11 @@ const TranslateBaselinkerProducts = () => {
 
     setLoading(true);
     try {
-      const payload = { product_ids: ids, language };
+      if (!inventoryId) {
+        setError("Proszę wybrać Katalog Produktów.");
+        return;
+      }
+      const payload = { product_ids: ids, language, inventory_id: inventoryId };
       const response = await api.post("/api/translate-bl-products/", payload);
       // Oczekujemy, że backend zwróci { results: [...], warnings: [...] }
       const data = response.data;
@@ -76,6 +102,20 @@ const TranslateBaselinkerProducts = () => {
             onChange={(e) => setInputValue(e.target.value)}
             rows={4}
           />
+        </FormControl>
+
+        <FormControl>
+          <FormLabel>Wybierz Katalog Produktów</FormLabel>
+          <Select
+            value={inventoryId}
+            onChange={(e) => setInventoryId(e.target.value)}
+          >
+            {baselinkerCategories.map((inventory) => (
+              <option key={inventory.id} value={inventory.id}>
+                {inventory.name}
+              </option>
+            ))}
+          </Select>
         </FormControl>
 
         <FormControl>

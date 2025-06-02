@@ -364,10 +364,11 @@ export const processAuctions = async (
         const parameterId = parameter.id;
 
         // Prepare auction parameter data
+        const separator = customParam ? customParam.separator : "|";
         const auctionParameterData = {
           parameter: parameterId,
           value_name: Array.isArray(value_name)
-            ? value_name.join("|")
+            ? value_name.join(separator)
             : value_name.toString(),
           value_id: 123,
           auction: auctionId,

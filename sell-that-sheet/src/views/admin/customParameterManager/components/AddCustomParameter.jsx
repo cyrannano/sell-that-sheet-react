@@ -21,6 +21,7 @@ const AddCustomParameter = ({ onParameterAdded }) => {
   const [parameterNameDe, setParameterNameDe] = useState("");
   const [parameterType, setParameterType] = useState("text");
   const [valuePairs, setValuePairs] = useState([]);
+  const [separator, setSeparator] = useState("|");
 
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -79,6 +80,7 @@ const AddCustomParameter = ({ onParameterAdded }) => {
         possible_values_de: ["single", "multi"].includes(parameterType)
           ? valuePairs.map((p) => p.de)
           : null,
+        separator: parameterType === "multi" ? separator.trim() || "|" : null,
       });
       setSuccess("Parametr został dodany.");
       setParameterNamePl("");
@@ -147,6 +149,19 @@ const AddCustomParameter = ({ onParameterAdded }) => {
           <option value="text">Tekstowy</option>
         </Select>
       </FormControl>
+
+      {parameterType === "multi" && (
+        <FormControl mb={4}>
+          <FormLabel>Separator</FormLabel>
+          <Input
+            value={separator}
+            onChange={(e) => setSeparator(e.target.value)}
+            placeholder="Wprowadź separator (domyślnie: |)"
+            defaultValue="|"
+            maxLength={10}
+          />
+        </FormControl>
+      )}
 
       {["single", "multi"].includes(parameterType) && (
         <FormControl mb={4}>

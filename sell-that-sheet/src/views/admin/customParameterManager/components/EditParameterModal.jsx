@@ -24,6 +24,7 @@ const EditParameterModal = ({ isOpen, onClose, parameter }) => {
   const [nameDe, setNameDe] = useState(parameter.name_de);
   const [parameterType, setParameterType] = useState(parameter.parameter_type);
   const [valuePairs, setValuePairs] = useState([]);
+  const [separator, setSeparator] = useState(parameter.separator || "|");
 
   const [loading, setLoading] = useState(false);
   const toast = useToast();
@@ -51,6 +52,7 @@ const EditParameterModal = ({ isOpen, onClose, parameter }) => {
         possible_values_de: ["single", "multi"].includes(parameterType)
           ? valuePairs.map((p) => p.de)
           : null,
+        separator: parameterType === "multi" ? separator : null,
       });
       toast({
         title: "Zaktualizowano parametr.",
@@ -114,6 +116,19 @@ const EditParameterModal = ({ isOpen, onClose, parameter }) => {
                 <option value="text">Tekstowy</option>
               </Select>
             </FormControl>
+
+            {parameterType === "multi" && (
+              <FormControl mb={4}>
+                <FormLabel>Separator</FormLabel>
+                <Input
+                  value={separator}
+                  onChange={(e) => setSeparator(e.target.value)}
+                  placeholder="Wprowadź separator (domyślnie: |)"
+                  defaultValue="|"
+                  maxLength={10}
+                />
+              </FormControl>
+            )}
 
             {["single", "multi"].includes(parameterType) && (
               <FormControl mb={4}>

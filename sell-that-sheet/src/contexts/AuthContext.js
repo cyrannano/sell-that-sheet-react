@@ -689,4 +689,61 @@ export const fetchBaselinkerInventories = async () => {
   return response.data;
 };
 
+// Convert uploaded CSV rows into XLSX columns
+export const convertRowsToColumns = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await api.post("/utils/rows-to-columns/", formData, {
+    responseType: "blob",
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+  return response.data;
+};
+
+// Trigger Allegro catalogue export
+export const startAllegroExport = async () => {
+  const response = await api.post("/allegro/export/start/");
+  return response.data;
+};
+
+// Download Allegro catalogue once ready
+export const downloadAllegroExport = async () => {
+  try {
+    const response = await api.get("/allegro/export/download/", {
+      responseType: "blob",
+      validateStatus: (status) => status === 200 || status === 404,
+    });
+    if (response.status === 404) {
+      return null;
+    }
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Start auction export task
+export const startAuctionExport = async () => {
+  const response = await api.get("/auctions/export/");
+  return response.data;
+};
+
+// Download auction export once ready
+export const downloadAuctionExport = async () => {
+  try {
+    const response = await api.get("/auctions/export/download/", {
+      responseType: "blob",
+      validateStatus: (status) => status === 200 || status === 404,
+    });
+    if (response.status === 404) {
+      return null;
+    }
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export { api };

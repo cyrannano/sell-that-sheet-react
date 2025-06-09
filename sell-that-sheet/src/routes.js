@@ -9,6 +9,7 @@ import {
   MdOutlineShoppingCart,
   MdBlurLinear,
   MdGTranslate,
+  MdDownload,
 } from "react-icons/md";
 import { RiTranslate } from "react-icons/ri";
 import { FaTag, FaTags } from "react-icons/fa";
@@ -29,6 +30,7 @@ import TagsManagerView from "views/admin/tagsManager";
 import CategoryTagsManagerView from "views/admin/categoryTagsManager";
 import CustomParameterManagerView from "views/admin/customParameterManager";
 import BaselinkerProductTranslation from "views/admin/baselinkerProductTranslation";
+import DataExporterView from "views/admin/dataExporter";
 
 const routes = [
   {
@@ -115,6 +117,13 @@ const routes = [
     path: "/baselinker-product-translation",
     icon: <Icon as={RiTranslate} width="20px" height="20px" color="inherit" />,
     component: BaselinkerProductTranslation,
+  },
+  {
+    name: "Eksporter danych",
+    layout: "/admin",
+    path: "/data-exporter",
+    icon: <Icon as={MdDownload} width="20px" height="20px" color="inherit" />,
+    component: DataExporterView,
   },
   // {
   //   name: "RTL Admin",

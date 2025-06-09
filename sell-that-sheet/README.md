@@ -40,6 +40,12 @@ Each element is well presented in a very complex documentation. You can read
 more about the <a href="https://horizon-ui.com/documentation/docs/introduction?ref=readme-horizon" target="_blank">documentation
 here.</a>
 
+### Frontend Integration Guide
+
+This repository includes additional helpers for working with the `sell-that-sheet` API.
+See [docs/frontend_integration.md](docs/frontend_integration.md) for details on
+CSV conversion and export endpoints. You can use these endpoints from the **Eksporter danych** page in the dashboard.
+
 ### Quick Start
 
 Install Horizon UI by running either of the following:

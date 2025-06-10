@@ -55,7 +55,7 @@ const ValuePairsInput = ({ pairs, setPairs }) => {
           onChange={(e) => setDeValue(e.target.value)}
           onKeyPress={handleKeyPress}
         />
-        <Button onClick={addPair} colorScheme="blue">
+        <Button onClick={addPair} colorScheme="blue" w={"250px"}>
           Dodaj parę
         </Button>
       </HStack>

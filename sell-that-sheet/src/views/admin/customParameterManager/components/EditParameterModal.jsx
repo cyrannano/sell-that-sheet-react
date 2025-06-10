@@ -72,9 +72,9 @@ const EditParameterModal = ({ isOpen, onClose, parameter }) => {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={onClose} maxW="900px">
       <ModalOverlay />
-      <ModalContent>
+      <ModalContent maxW={"900px"}>
         <ModalHeader>Edytuj parametr</ModalHeader>
         <ModalCloseButton />
         <ModalBody>

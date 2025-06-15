@@ -726,14 +726,14 @@ export const downloadAllegroExport = async () => {
 
 // Start auction export task
 export const startAuctionExport = async () => {
-  const response = await api.get("/auctions/export/");
+  const response = await api.get("/bl-auctions/export/");
   return response.data;
 };
 
 // Download auction export once ready
 export const downloadAuctionExport = async () => {
   try {
-    const response = await api.get("/auctions/export/download/", {
+    const response = await api.get("/bl-auctions/export/download/", {
       responseType: "blob",
       validateStatus: (status) => status === 200 || status === 404,
     });

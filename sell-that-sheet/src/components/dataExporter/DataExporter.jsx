@@ -21,6 +21,7 @@ const DataExporter = () => {
   const [csvFile, setCsvFile] = useState(null);
   const [allegroRunning, setAllegroRunning] = useState(false);
   const [auctionRunning, setAuctionRunning] = useState(false);
+  const [rowColConversionRunning, setRowColConversionRunning] = useState(false);
   const toast = useToast();
 
   const downloadBlob = (blob, filename) => {
@@ -35,8 +36,10 @@ const DataExporter = () => {
   const handleConvert = async () => {
     if (!csvFile) return;
     try {
+      setRowColConversionRunning(true);
       const blob = await convertRowsToColumns(csvFile);
       downloadBlob(blob, "converted.csv");
+      setRowColConversionRunning(false);
       toast({
         title: "Plik zapisany",
         status: "success",
@@ -44,6 +47,7 @@ const DataExporter = () => {
         isClosable: true,
       });
     } catch (err) {
+      setRowColConversionRunning(false);
       console.error(err);
       toast({
         title: "Błąd konwersji",
@@ -137,9 +141,11 @@ const DataExporter = () => {
               colorScheme="blue"
               onClick={handleConvert}
               isDisabled={!csvFile}
+              isLoading={rowColConversionRunning}
             >
               Konwertuj
             </Button>
+            {rowColConversionRunning && <Text mt={2}>Trwa konwersja...</Text>}
           </HStack>
         </Box>
 

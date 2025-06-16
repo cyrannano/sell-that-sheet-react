@@ -36,11 +36,21 @@ const DataExporter = () => {
     if (!csvFile) return;
     try {
       const blob = await convertRowsToColumns(csvFile);
-      downloadBlob(blob, "converted.xlsx");
-      toast({ title: "Plik zapisany", status: "success", duration: 3000, isClosable: true });
+      downloadBlob(blob, "converted.csv");
+      toast({
+        title: "Plik zapisany",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
     } catch (err) {
       console.error(err);
-      toast({ title: "Błąd konwersji", status: "error", duration: 3000, isClosable: true });
+      toast({
+        title: "Błąd konwersji",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
     }
   };
 
@@ -49,7 +59,12 @@ const DataExporter = () => {
     if (blob) {
       downloadBlob(blob, "full_catalogue.xlsx");
       setAllegroRunning(false);
-      toast({ title: "Pobrano katalog", status: "success", duration: 3000, isClosable: true });
+      toast({
+        title: "Pobrano katalog",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
     } else {
       setTimeout(pollAllegro, 5000);
     }
@@ -62,7 +77,12 @@ const DataExporter = () => {
       pollAllegro();
     } catch (err) {
       setAllegroRunning(false);
-      toast({ title: "Błąd eksportu", status: "error", duration: 3000, isClosable: true });
+      toast({
+        title: "Błąd eksportu",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
     }
   };
 
@@ -71,7 +91,12 @@ const DataExporter = () => {
     if (blob) {
       downloadBlob(blob, "auctions_export.xlsx");
       setAuctionRunning(false);
-      toast({ title: "Pobrano aukcje", status: "success", duration: 3000, isClosable: true });
+      toast({
+        title: "Pobrano aukcje",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
     } else {
       setTimeout(pollAuction, 5000);
     }
@@ -84,7 +109,12 @@ const DataExporter = () => {
       pollAuction();
     } catch (err) {
       setAuctionRunning(false);
-      toast({ title: "Błąd eksportu", status: "error", duration: 3000, isClosable: true });
+      toast({
+        title: "Błąd eksportu",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
     }
   };
 
@@ -94,24 +124,48 @@ const DataExporter = () => {
         <Heading size="lg">Eksporter danych</Heading>
 
         <Box>
-          <Heading size="md" mb={2}>Konwertuj CSV na XLSX</Heading>
+          <Heading size="md" mb={2}>
+            Konwertuj CSV na XLSX
+          </Heading>
           <HStack>
-            <Input type="file" accept=".csv" onChange={(e) => setCsvFile(e.target.files[0])} />
-            <Button colorScheme="blue" onClick={handleConvert} isDisabled={!csvFile}>Konwertuj</Button>
+            <Input
+              type="file"
+              accept=".csv"
+              onChange={(e) => setCsvFile(e.target.files[0])}
+            />
+            <Button
+              colorScheme="blue"
+              onClick={handleConvert}
+              isDisabled={!csvFile}
+            >
+              Konwertuj
+            </Button>
           </HStack>
         </Box>
 
         <Box>
-          <Heading size="md" mb={2}>Eksportuj produkty Allegro</Heading>
-          <Button colorScheme="blue" onClick={handleAllegroExport} isLoading={allegroRunning}>
+          <Heading size="md" mb={2}>
+            Eksportuj produkty Allegro
+          </Heading>
+          <Button
+            colorScheme="blue"
+            onClick={handleAllegroExport}
+            isLoading={allegroRunning}
+          >
             Rozpocznij eksport
           </Button>
           {allegroRunning && <Text mt={2}>Trwa generowanie pliku...</Text>}
         </Box>
 
         <Box>
-          <Heading size="md" mb={2}>Eksportuj aukcje</Heading>
-          <Button colorScheme="blue" onClick={handleAuctionExport} isLoading={auctionRunning}>
+          <Heading size="md" mb={2}>
+            Eksportuj produkty z programu
+          </Heading>
+          <Button
+            colorScheme="blue"
+            onClick={handleAuctionExport}
+            isLoading={auctionRunning}
+          >
             Rozpocznij eksport
           </Button>
           {auctionRunning && <Text mt={2}>Trwa generowanie pliku...</Text>}

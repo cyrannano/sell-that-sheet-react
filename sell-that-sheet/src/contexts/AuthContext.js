@@ -746,4 +746,31 @@ export const downloadAuctionExport = async () => {
   }
 };
 
+export const createProductFromExistingBase = async (
+  imageList,
+  folderChain,
+  thumbnailImageName,
+  productId
+) => {
+  console.log(
+    "Creating product from existing base with images:",
+    imageList,
+    folderChain,
+    thumbnailImageName
+  );
+  const photoset = await createPhotoSet(
+    imageList,
+    folderChain,
+    thumbnailImageName
+  );
+  console.log("Created photoset:", photoset);
+
+  const response = await api.post("/bl-auctions/copy-with-images/", {
+    photoset_id: photoset.id,
+    product_id: productId,
+  });
+  console.log("Response from creating product:", response.data);
+  return response.data;
+};
+
 export { api };
